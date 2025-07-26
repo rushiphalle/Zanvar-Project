@@ -1,5 +1,5 @@
-#ifndef SPC_H
-#define SPC_H
+#ifndef MYSPCCALCULATOR_H
+#define MYSPCCALCULATOR_H
 
 #include <vector>
 #include <cmath>
@@ -67,4 +67,4 @@ inline SPCResult calculate(const std::vector<float>& dataPoints, SPCsettings set
     return result;
 }
 
-#endif // SPC_H
+#endif
