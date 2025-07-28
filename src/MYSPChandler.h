@@ -7,41 +7,83 @@
 #include "handler.h"
 #include <string>
 #include <vector>
+#include <map>
 
 class _MySPCHandler {
 private:
+    std::map<String, std::vector<float>> monitorData;
 
-    // Make constructor private
     _MySPCHandler() {}
 
-    // Prevent copy/assign (enforces singleton)
     _MySPCHandler(const _MySPCHandler&) = delete;
     _MySPCHandler& operator=(const _MySPCHandler&) = delete;
 
-    // Only allow this specific object to construct
     friend _MySPCHandler& spchandler;
 
-    void calculateSPC(const String& monitorCode, std::vector<float> values){
-        //this function wiil fetch spc settings associated with monitor code using db.get(monitorCode) **Note - if spc setting is not there for specific monitorCode then call delete(monitorCode) fucntion
-        //then it will call calculate(values, settinngs) which will return a result struct
-        //then it will call handleResult(monitorCode, values, result, setting)
+    void calculateSPC(const String& monitorCode, std::vector<float> values) {
+        SPCsettings settings;
+
+        if (db.get(monitorCode, &settings)) {
+            SPCResult result = calculate(values, settings);
+            handleResult(monitorCode, values, result, settings);
+        } else {
+            this->remove(monitorCode);
+            Serial.printf("SPC settings not found for monitorCode: %s. Data record deleted.\n", monitorCode.c_str());
+        }
     }
 
 public:
-    void reset(const String& monitorCode){
-        //this will remove all elements form the vector where key = monitorCode
+    void reset(const String& monitorCode) {
+        auto it = monitorData.find(monitorCode);
+        if (it != monitorData.end()) {
+            it->second.clear();
+            Serial.printf("Record for monitorCode: %s has been reset.\n", monitorCode.c_str());
+        } else {
+            Serial.printf("No record found for monitorCode: %s to reset.\n", monitorCode.c_str());
+        }
     }
 
-    void delete(const String& monitorCode){
-        //this will delete key value pair where key = monitorCode
+    void remove(const String& monitorCode) {
+        auto it = monitorData.find(monitorCode);
+        if (it != monitorData.end()) {
+            monitorData.erase(it);
+            Serial.printf("Record for monitorCode: %s has been deleted.\n", monitorCode.c_str());
+        } else {
+            Serial.printf("No record found for monitorCode: %s to delete.\n", monitorCode.c_str());
+        }
     }
 
-    void insertParameter(const String& monitorCode, float parameter){
-        //this will check wheter it maps monitorCode with any vector if yes then add parameter at end of that vector and call calculateSPC() with new vector and if it dont holds then create new map record
+    void insertParameter(const String& monitorCode, float parameter) {
+        auto it = monitorData.find(monitorCode);
+
+        if (it != monitorData.end()) {
+            it->second.push_back(parameter);
+            Serial.printf("Parameter %.3f added to existing record for monitorCode: %s. Current size: %d\n",
+                          parameter, monitorCode.c_str(), it->second.size());
+        } else {
+            monitorData[monitorCode] = {parameter};
+            Serial.printf("New record created for monitorCode: %s with initial parameter: %.3f\n",
+                          monitorCode.c_str(), parameter);
+        }
+
+        SPCsettings settings;
+        if (db.get(monitorCode, &settings)) {
+            if (monitorData[monitorCode].size() >= settings.datapointSize && settings.datapointSize > 0) {
+                Serial.printf("Datapoint size limit (%d) reached for monitorCode: %s. Flushing record and calculating SPC.\n",
+                              settings.datapointSize, monitorCode.c_str());
+
+                calculateSPC(monitorCode, monitorData[monitorCode]);
+                this->reset(monitorCode);
+            } else {
+                calculateSPC(monitorCode, monitorData[monitorCode]);
+            }
+        } else {
+            Serial.printf("Warning: SPC settings not found for monitorCode: %s. Cannot check datapointSize or calculate SPC.\n",
+                          monitorCode.c_str());
+        }
     }
 };
 
-// ✅ Shared singleton-like instance
 inline _MySPCHandler spchandler;
 
-#endif
+#endif // MYSPCCALCULATOR_H
