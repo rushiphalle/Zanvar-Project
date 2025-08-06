@@ -14,7 +14,7 @@
  * @returns {boolean} Returns `true` if SPC settings get updated, otherwise `false`.
  */
 export async function update(monitorCode, USL, LSL, D3, D4, A2, bufferSizeName, machineIP, toolOffsetNum, offsetSize) {
-    return true;
+return true;
 }
 
 /**
@@ -33,8 +33,9 @@ export async function reset(monitorCode){
  * @param {string} monitorCode - Unique identifier for the SPC monitor or sensor.
  * @returns {boolean} Returns `true` if monitor get delted, otherwise `false`.
  */
+
 export async function deleteM(monitorCode){
-    return true
+    return true;
 }
 
 /**
@@ -42,11 +43,13 @@ export async function deleteM(monitorCode){
  * @param {(content: any) => void} callback - Function to call whenever content is emitted.
  */
 export function subscribe(callback) {
-    i = 0;
-    setInterval(()=>{
-        callback(data[i++]);
+    let i = 0;
+    setInterval(() => {
+      callback(data[i % data.length]);
+      i++;
     }, 2000);
-}
+ }
+
 
 
 
@@ -338,4 +341,5 @@ let data = [
     "toolOffsetNumber": 641,
     "offsetSize": 51615.5
   },
+
 ]
