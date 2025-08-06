@@ -13,7 +13,7 @@
  * @param {number} offsetSize - Size of the tool offset to apply.
  * @returns {boolean} Returns `true` if SPC settings get updated, otherwise `false`.
  */
-export function update(monitorCode, USL, LSL, D3, D4, A2, bufferSizeName, machineIP, toolOffsetNum, offsetSize) {
+export async function update(monitorCode, USL, LSL, D3, D4, A2, bufferSizeName, machineIP, toolOffsetNum, offsetSize) {
     return true;
 }
 
@@ -23,7 +23,7 @@ export function update(monitorCode, USL, LSL, D3, D4, A2, bufferSizeName, machin
  * @param {string} monitorCode - Unique identifier for the SPC monitor or sensor.
  * @returns {boolean} Returns `true` if monitor get reset, otherwise `false`.
  */
-export function reset(monitorCode){
+export async function reset(monitorCode){
     return true
 }
 
@@ -33,7 +33,7 @@ export function reset(monitorCode){
  * @param {string} monitorCode - Unique identifier for the SPC monitor or sensor.
  * @returns {boolean} Returns `true` if monitor get delted, otherwise `false`.
  */
-export function deleteM(monitorCode){
+export async function deleteM(monitorCode){
     return true
 }
 
