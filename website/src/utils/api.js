@@ -14,7 +14,35 @@
  * @returns {boolean} Returns `true` if SPC settings get updated, otherwise `false`.
  */
 export async function update(monitorCode, USL, LSL, D3, D4, A2, bufferSizeName, machineIP, toolOffsetNum, offsetSize) {
-    return true;
+    try {
+        const response = await fetch('/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                monitorCode,
+                USL,
+                LSL,
+                D3,
+                D4,
+                A2,
+                bufferSizeName,
+                machineIP,
+                toolOffsetNum,
+                offsetSize,
+            }),
+        });
+
+        if (response.ok) {
+            return true;
+        } else {
+            return false;
+        }
+    } catch (error) {
+        console.error('Error during update:', error);
+        return false;
+    }
 }
 
 /**
@@ -42,13 +70,29 @@ export async function deleteM(monitorCode){
  * @param {(content: any) => void} callback - Function to call whenever content is emitted.
  */
 export function subscribe(callback) {
-    i = 0;
-    setInterval(()=>{
-        callback(data[i++]);
-    }, 2000);
+    const socket = new WebSocket(`ws://${window.location.host}/subscribe`);
+
+    socket.onopen = () => {
+        console.log('WebSocket connection established.');
+    };
+
+    socket.onmessage = (event) => {
+        try {
+            const json = JSON.parse(event.data);
+            callback(json);
+        } catch (e) {
+            console.error('Failed to parse WebSocket message as JSON:', e);
+        }
+    };
+
+    socket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+    };
+
+    socket.onclose = () => {
+        console.warn('WebSocket connection closed.');
+    };
 }
-
-
 
 /*DEMO DATA*/
 let data = [
