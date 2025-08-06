@@ -61,8 +61,9 @@ export async function reset(monitorCode){
  * @param {string} monitorCode - Unique identifier for the SPC monitor or sensor.
  * @returns {boolean} Returns `true` if monitor get delted, otherwise `false`.
  */
+
 export async function deleteM(monitorCode){
-    return true
+    return true;
 }
 
 /**
@@ -382,4 +383,5 @@ let data = [
     "toolOffsetNumber": 641,
     "offsetSize": 51615.5
   },
+
 ]
