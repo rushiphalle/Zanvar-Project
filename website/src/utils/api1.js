@@ -2,6 +2,7 @@ function block(time) {
   return new Promise(resolve => setTimeout(resolve, time));
 }
 
+let capacity = 10;
 
 let users =  {
     'admin':{
@@ -123,6 +124,11 @@ let current_user = null;
 
 export async function login(username, password) {
     await block(2000);
+    capacity--;
+    if(capacity<=0) return {
+            code: 503,
+            reason: 'To Many People Are accessing the website right now'
+    }
     if(users[username] && users[username].password == password){
         current_user = username;
         return {
