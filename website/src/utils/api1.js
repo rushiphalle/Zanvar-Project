@@ -338,6 +338,27 @@ export async function updateRole(username, password, userAlias, allowedTo) {
     }
 }
 
+export async function deleteRole(username){
+    await block(2000);
+    if(current_user){
+        //this means user is logged in
+        if(users[current_user].allowedTo.includes('SECURITY')){
+            delete users[username];
+            return {
+                code : 200,
+            }
+        }
+        return {
+            code: 403,
+            reason: 'Not Allowed To Perform This Operation'
+        }
+    }
+    return {
+        code: 401,
+        reason: 'Session Expired'
+    }
+}
+
 
 function test() {
   setInterval(() => {
