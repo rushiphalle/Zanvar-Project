@@ -209,6 +209,7 @@ export async function update(monitorCode, USL, LSL, D3, D4, A2, bufferSize, mach
                 "toolOffsetNumber": toolOffsetNum,
                 "offsetSize": offsetSize,
             }
+            reset(monitorCode);          
             return {
                 code: 200,
             }
@@ -230,6 +231,7 @@ export async function deleteM(monitorCode) {
         //this means user is logged in
         if(users[current_user].allowedTo.includes('SETTING')){
             delete settings[monitorCode];
+            reset(monitorCode);          
             return {
                 code: 200,
             }
@@ -344,4 +346,4 @@ function test() {
   }, 5000);
 }
 
-test();
+//test();
