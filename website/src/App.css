@@ -1,0 +1,222 @@
+/* Base layout */
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Body styling */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #f7f7f7;
+  color: #000;
+}
+
+/* Typography */
+h1, h3, p, td, th, span, div {
+  color: #000 !important;
+}
+
+h1 {
+  font-size: 32px;
+  margin-bottom: 16px;
+}
+
+h3 {
+  margin-top: 0;
+}
+
+/* Logo Animation */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* Card */
+.card {
+  padding: 2em;
+}
+
+/* Docs link */
+.read-the-docs {
+  color: #888;
+}
+
+/* Table styling */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  color: #000;
+}
+
+table, th, td {
+  border: 1px solid #dee2e6;
+  padding: 6px;
+  text-align: left;
+  color: #000;
+}
+
+th {
+  background-color: #f1f1f1;
+}
+
+tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+/* App Container */
+.app-container {
+  min-height: 100vh;
+  padding: 24px;
+  background-color: #f9f9f9;
+}
+
+/* Grid for input fields */
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.input-grid input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #000;
+}
+
+/* Buttons */
+button {
+  border: none;
+  padding: 10px 16px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer;
+  color: #000;
+}
+button:hover {
+  opacity: 0.9;
+}
+
+/* Specific Button Styles */
+.add-monitor {
+  background-color: #007bff;
+  color: white;
+}
+
+.reset-btn {
+  background-color: #ffc107;
+  color: #000;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+}
+
+.edit-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+/* Monitor Layout */
+.monitor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 20px;
+}
+
+.monitor-card {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  color: #000;
+}
+
+.monitor-title {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: #000;
+}
+
+.monitor-info {
+  font-size: 14px;
+  margin-top: 10px;
+  color: #000;
+}
+
+.monitor-info table {
+  margin-top: 10px;
+}
+
+.monitor-info th,
+.monitor-info td {
+  border: 1px solid #ccc;
+  padding: 6px;
+  text-align: center;
+  color: #000 !important;
+}
+
+/* Button group */
+.btn-group {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+/* Edit popup */
+.edit-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 400px;
+  transform: translate(-50%, -50%);
+  background-color: #fff;
+  border: 2px solid #007bff;
+  border-radius: 12px;
+  padding: 24px;
+  z-index: 9999;
+  color: #000;
+}
+
+.edit-popup input {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #fff;
+  color: #000;
+  border-radius: 6px;
+}
+
+.edit-popup button {
+  margin-top: 10px;
+}

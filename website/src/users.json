@@ -1,0 +1,52 @@
+[
+    {
+      "username": "admin",
+      "password": "1234",
+      "role": "admin1"
+    },
+    {
+      "username": "admin12",
+      "password": "12345",
+      "role": "admin2"
+    },
+    {
+      "username": "alex_admin",
+      "password": "alex456",
+      "role": "admin1"
+    },
+    {
+      "username": "sophia_admin",
+      "password": "sophia456",
+      "role": "admin2"
+    },
+    {
+      "username": "mike_admin",
+      "password": "mike789",
+      "role": "admin1"
+    },
+    {
+      "username": "olivia_admin",
+      "password": "olivia789",
+      "role": "admin2"
+    },
+    {
+      "username": "liam_admin",
+      "password": "liam321",
+      "role": "admin1"
+    },
+    {
+      "username": "ava_admin",
+      "password": "ava321",
+      "role": "admin2"
+    },
+    {
+      "username": "noah_admin",
+      "password": "noah654",
+      "role": "admin1"
+    },
+    {
+      "username": "mia_admin",
+      "password": "mia654",
+      "role": "admin2"
+    }
+  ]
