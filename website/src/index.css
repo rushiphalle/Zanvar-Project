@@ -66,3 +66,76 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #0f172a;
+  color: white;
+}
+
+.app-container {
+  display: flex;
+  justify-content: center;
+  padding: 10px;
+}
+
+.login-container {
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+}
+
+.login-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.login-container input {
+  margin: 10px 0;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+}
+
+.login-container button {
+  padding: 10px;
+  background-color: #0ea5e9;
+  color: white;
+  border: none;
+  border-radius: 5px;
+}
+
+.monitor-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.monitor-card {
+  background-color: #ffffff;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.chart-card {
+  background-color: #0f172a;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.monitor-stats {
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* Ensure global background is white */
+html,
+body,
+#root {
+  background-color: #ffffff !important;
+}
