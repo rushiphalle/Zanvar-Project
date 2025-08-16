@@ -1,0 +1,68 @@
+.monitor-container {
+  padding-bottom: 80px; /* Space for bottom nav */
+  background: #ffffff;
+  min-height: 100dvh;
+}
+
+.monitor-card {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 12px;
+  margin: 10px;
+  color: #111827;
+  min-width: 300px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+  border: 1px solid rgb(255, 204, 204); /* light orange border */
+}
+
+.monitor-stats {
+  color: #111827; /* ensure stats text visible */
+}
+
+.monitor-stats p {
+  margin: 5px 0;
+}
+
+.monitor-stats b {
+  color: #f91616; /* orange label emphasis */
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Add styles for Admin and Security modals when implemented */
+.admin-modal,
+.security-modal {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 600px;
+  color: #111827;
+  border: 1px solid rgb(255, 204, 204);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .monitor-card {
+    margin: 10px 5px;
+  }
+  
+  .bottom-nav {
+    padding: 8px;
+  }
+  
+  .nav-button {
+    padding: 8px;
+  }
+}
