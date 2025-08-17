@@ -13,8 +13,8 @@
 
 namespace AppCore {
     inline bool reset(const char* monitorCode){
-//        return spcHandler.reset(monitorCode);
-          return true;
+        spcHandler.reset(monitorCode);
+        return true;
     }
 
     inline bool update(const char* monitorCode, float a2, float d3, float d4, float usl, float lsl, int datapointSize, const char* machineName, const char* machineIP, int toolOffsetNumber, int offsetSize){
@@ -53,8 +53,8 @@ namespace AppCore {
 
     inline bool remove(const char* monitorCode){
         if (!spcDb.has(monitorCode)) return false;
-        spcDb.remove(monitorCode);
-//        spcHandler.remove(monitorCode);
+          spcDb.remove(monitorCode);
+          spcHandler.remove(monitorCode);
         return true;
     }
 
