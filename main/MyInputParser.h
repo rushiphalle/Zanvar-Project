@@ -1,7 +1,7 @@
 #ifndef MYINPUTHANDLER_H
 #define MYINPUTHANDLER_H
 
-#include "MYSPChandler.h"
+#include "MYSPCHandler.h"
 
 class MyInputHandler {
 private:
