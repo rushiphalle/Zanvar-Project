@@ -58,7 +58,7 @@ namespace AppCore {
         return true;
     }
 
-    inline bool updateWifi(const char* ssid, const char* password) {
+    inline void updateWifi(const char* ssid, const char* password) {
         FixedString32 ssidObj;
         FixedString32 passwordObj;
 

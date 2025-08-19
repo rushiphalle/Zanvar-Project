@@ -246,11 +246,11 @@ private:
             return false;
         }
         if(!Auth::isValid(sessionId)){
-            request->send(401, "application/json", "{\"status\":\"Unauthenticated\"}");
+            request->send(401, "text/plain", "Unauthenticated");
             return false;
         }
         if(!Auth::isAllowedTo(sessionId, action)){
-            request->send(403, "application/json", "{\"status\":\"Unauthenticated\"}");
+            request->send(403, "text/plain", "Not Allowded To Perform This Action");
             return false;
         }
         return true;
@@ -431,12 +431,13 @@ public:
             ActiveUser activeUser = Auth::login(username, passwordBuf);
             
             if (!activeUser.valid) {
-                request->send(activeUser.errCode, "application/json", "{\"status\":\"Unauthenticated\"}");
+                request->send(activeUser.errCode, "text/plain", activeUser.errCode ==401 ? "Invalid Username Or Password" : "Server Reached Max Login capacity");
                 return;
             }
             
-            char cookieBuf[128];
-            snprintf(cookieBuf, sizeof(cookieBuf), "session_id=%s; Path=/; HttpOnly", activeUser.cookie);
+           char cookieBuf[128];
+           snprintf(cookieBuf, sizeof(cookieBuf), "session_id=%s; Path=/", activeUser.cookie);
+
             
             char jsonBuf[256]; // adjust based on max expected size
             AppCore::activeUserToJson(&activeUser, jsonBuf, sizeof(jsonBuf));
@@ -455,7 +456,7 @@ public:
                 return;
             }
             if(!Auth::isValid(sessionId)){
-                request->send(401, "application/json", "{\"status\":\"unauthorized\"}");
+                request->send(401, "text/plain", "Unauthenticated");
                 return;
             }
 
@@ -472,7 +473,7 @@ public:
         //3) GET getSettings
         server.on("/getSettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SETTING"))   return;
-            char jsonBuf[1500]; // Adjust size to fit max expected JSON
+            char jsonBuf[1500];
             AppCore::getSettings(jsonBuf, sizeof(jsonBuf));
             request->send(200, "application/json", jsonBuf);
         });       
@@ -497,11 +498,8 @@ public:
             char monitorCode[32]; 
             p->value().toCharArray(monitorCode, sizeof(monitorCode));
 
-            if (AppCore::reset(monitorCode)) {
-                request->send(200, "text/plain", "Reset successful");
-            } else {
-                request->send(500, "text/plain", "Reset failed");
-            }
+            AppCore::reset(monitorCode);
+            request->send(200, "application/json", "{\"status\":\"OK\"}");
         });
 
         //6) POST /delete?monitorCode=700
@@ -517,9 +515,9 @@ public:
             p->value().toCharArray(monitorCode, sizeof(monitorCode));
 
             if (AppCore::remove(monitorCode)) {
-                request->send(200, "text/plain", "Delete successful");
+                 request->send(200, "application/json", "{\"status\":\"OK\"}");
             } else {
-                request->send(500, "text/plain", "Delete failed");
+                request->send(404, "text/plain", "Record Not Found");
             }
         });
 
@@ -528,14 +526,14 @@ public:
                 if(!isAuthenticated(request, "SETTING"))   return;
 
                 if (len >= 512) {
-                    request->send(400, "application/json", "{\"status\":\"Body too large\"}");
+                    request->send(400, "text/plain", "JSON Data Too Large");
                     return;
                 }
 
                 StaticJsonDocument<512> doc; 
                 DeserializationError err = deserializeJson(doc, data, len);
                 if (err) {
-                    request->send(400, "application/json", "{\"status\":\"Invalid JSON\"}");
+                    request->send(400, "text/plain", "Invalid JSON Data");
                     return;
                 }
 
@@ -556,7 +554,7 @@ public:
                 if (success) {
                     request->send(200, "application/json", "{\"status\":\"OK\"}");
                 } else {
-                    request->send(500, "application/json", "{\"status\":\"Failed\"}");
+                    request->send(507, "text/plain", "Max Setting Storage Limit Reached");
                 }
             }
         );
@@ -572,32 +570,29 @@ public:
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
                 if (len >= 128) {
-                    request->send(400, "application/json", "{\"status\":\"Body too large\"}");
+                    request->send(400, "text/plain", "JSON Data Too Large");
                     return;
                 }
 
                 StaticJsonDocument<128> doc;
                 DeserializationError err = deserializeJson(doc, data, len);
                 if (err) {
-                    request->send(400, "application/json", "{\"status\":\"Invalid JSON\"}");
+                    request->send(400, "text/plain", "Invalid JSON Data");
                     return;
                 }
 
                 const char *ssid     = doc["ssid"]     | "";
                 const char *password = doc["password"] | "";
 
-                if (strlen(ssid) == 0 || strlen(password) == 0) {
-                    request->send(400, "application/json", "{\"status\":\"error\",\"message\":\"Missing parameters\"}");
+                if (strlen(ssid) <= 7 || strlen(password) <= 7) {
+                    request->send(400, "text/plain", "Length of password and ssid must be greater than 7");
                     return;
                 }
 
-                if (AppCore::updateWifi(ssid, password)) {
-                    request->send(200, "application/json", "{\"status\":\"ok\"}");
-                    delay(2000);
-                    restartServer();
-                } else {
-                    request->send(500, "application/json", "{\"status\":\"error\",\"message\":\"Update failed\"}");
-                }
+                AppCore::updateWifi(ssid, password);
+                request->send(200, "application/json", "{\"status\":\"ok\"}");
+                delay(2000);
+                restartServer();
             }
         );
 
@@ -612,14 +607,14 @@ public:
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
                 if (len >= 256) {
-                    request->send(400, "application/json", "{\"status\":\"Body too large\"}");
+                    request->send(400, "text/plain", "JSON Data Too Large");
                     return;
                 }
 
                 StaticJsonDocument<256> doc;
                 DeserializationError err = deserializeJson(doc, data, len);
                 if (err) {
-                    request->send(400, "application/json", "{\"status\":\"Invalid JSON\"}");
+                    request->send(400, "text/plain", "Invalid JSON Data");
                     return;
                 }
 
@@ -642,7 +637,7 @@ public:
                 if (Auth::createNewUser(username, password, userAlias, allowedTo, allowedCount)) {
                     request->send(200, "application/json", "{\"status\":\"ok\"}");
                 } else {
-                    request->send(500, "application/json", "{\"status\":\"error\",\"message\":\"User creation failed\"}");
+                    request->send(507, "text/plain", "Max User Capacity Reached");
                 }
             }
         );
@@ -650,12 +645,16 @@ public:
         //10)POST /deleteRole?username=xyz
         server.on("/deleteRole", HTTP_POST, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SECURITY"))   return;
-
+            const AsyncWebParameter *p = request->getParam("username");
+            if (!p) {
+                request->send(400, "text/plain", "Missing Username");
+                return;
+            }
             char username[32] = {0};
             request->getParam("username")->value().toCharArray(username, sizeof(username));
 
             if (Auth::deleteRole(username)) {
-                request->send(200, "text/plain", "Role deleted");
+                request->send(200, "application/json", "{\"status\":\"ok\"}");
             } else {
                 request->send(404, "text/plain", "Role not found");
             }
