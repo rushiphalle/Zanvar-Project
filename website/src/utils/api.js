@@ -450,7 +450,7 @@ export async function deleteRole(username) {
 
 
 export async function subscribe(callback) {
-    const socket = new WebSocket("ws://localhost:8080");
+    const socket = new WebSocket("ws://192.168.4.1/subscribe");
     socket.addEventListener("open", () => {
       const allCookies = document.cookie;
       const match = allCookies.match(/session_id=([A-Za-z0-9]{15})/);
