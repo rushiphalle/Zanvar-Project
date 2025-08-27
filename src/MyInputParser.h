@@ -1,7 +1,7 @@
 #ifndef MYINPUTHANDLER_H
 #define MYINPUTHANDLER_H
 
-#include "MYSPCHandler.h"
+#include "MySPCHandler.h"
 #include <Arduino.h>
 
 #define BUFFER_SIZE 512
