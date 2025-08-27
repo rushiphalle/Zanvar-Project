@@ -120,7 +120,7 @@ public:
         // Run SPC calculation
         SPCResult result = calculate(setting, rec.values, rec.size);
 
-        // Handle results (publish, drift check, etc.)
+        // Handle results (publish, drift check, etc)
         handleResult(monitorCode, rec.values, rec.size, setting, result);
     }
 };
