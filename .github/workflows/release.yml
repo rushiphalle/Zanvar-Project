@@ -1,0 +1,104 @@
+name: Build and Release ESP32 Project
+
+on:
+  push:
+    tags:
+      - "v*.*.*"   # Runs when you push a version tag like v1.0.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2) Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # 3) Setup Python
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"  # closest to 3.0.0 (since 3.0 is ancient)
+
+      # 4) Install PlatformIO
+      - name: Install PlatformIO
+        run: |
+          pip install -U platformio
+
+      # 5) Build website and move to data/
+      - name: Build Website
+        run: |
+          cd website
+          npm install
+          npm run build
+          mkdir -p ../data/dist
+          cp -r dist/* ../data/dist/
+
+      # 6) Compile firmware
+      - name: Build firmware
+        run: |
+          pio run
+
+      # 7) Compile LittleFS image
+      - name: Build LittleFS
+        run: |
+          pio run -t buildfs
+
+      # 8) Collect binaries
+      - name: Collect binaries
+        run: |
+          mkdir -p build_output
+          cp .pio/build/esp32dev/firmware.bin build_output/
+          cp .pio/build/esp32dev/littlefs.bin build_output/
+          cp .pio/build/esp32dev/bootloader.bin build_output/ || true
+          cp .pio/build/esp32dev/partitions.bin build_output/ || true
+
+      # 9) Create flash.py uploader
+      - name: Create flash.py
+        run: |
+          cat << 'EOF' > build_output/flash.py
+          #!/usr/bin/env python3
+          import os, sys, subprocess
+
+          ESPTOOL = "esptool.py"
+          PORT = "--port"  # auto-detect is handled by esptool
+
+          cmd = [
+              ESPTOOL, PORT, "auto", "--chip", "esp32",
+              "write_flash", "-z",
+              "0x1000", "bootloader.bin",
+              "0x8000", "partitions.bin",
+              "0xe000", "boot_app0.bin" if os.path.exists("boot_app0.bin") else "",
+              "0x10000", "firmware.bin",
+              "0x310000", "littlefs.bin"
+          ]
+          cmd = [c for c in cmd if c]  # remove empty entries
+
+          print("Running:", " ".join(cmd))
+          subprocess.run(cmd, check=True)
+          EOF
+          chmod +x build_output/flash.py
+
+      # 10) Zip package
+      - name: Package Release
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          ZIP_NAME="ZanvarSolution${VERSION}.zip"
+          cd build_output
+          zip -r ../$ZIP_NAME *
+          cd ..
+          echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+
+      # 11) Upload GitHub Release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.ZIP_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
