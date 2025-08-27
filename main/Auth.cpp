@@ -48,30 +48,30 @@ bool Auth::flushStaleUser() {
 }
 
 //public
-ActiveUser Auth::login(const char* username, const char* password) {
-    ActiveUser newUser = {};
-    newUser.valid = false;
-    newUser.errCode = 401;
+    ActiveUser Auth::login(const char* username, const char* password) {
+        ActiveUser newUser = {};
+        newUser.valid = false;
+        newUser.errCode = 401;
 
-    if (activeUsersCount >= CONCURRENT_LIMIT && !flushStaleUser()) {
-        newUser.errCode = 503;
+        if (activeUsersCount >= CONCURRENT_LIMIT && !flushStaleUser()) {
+            newUser.errCode = 503;
+            return newUser;
+        }
+
+        User user;
+        if (userRolesDb.get(username, &user) && strcmp(user.password, password) == 0) {
+            newUser.valid = true;
+            generateCookie(newUser.cookie, sizeof(newUser.cookie));
+            strncpy(newUser.userAlias, user.userAlias, sizeof(newUser.userAlias) - 1);
+            strncpy(newUser.username, user.username, sizeof(newUser.username) - 1);
+            newUser.allowedTo   = user.allowedTo;
+            newUser.isSubscriber = false;
+            newUser.clientId  = 0;
+            newUser.lastActivity = std::time(nullptr);
+            activeUsers[activeUsersCount++] = newUser;
+        }
         return newUser;
     }
-
-    User user;
-    if (userRolesDb.get(username, &user) && strcmp(user.password, password) == 0) {
-        newUser.valid = true;
-        generateCookie(newUser.cookie, sizeof(newUser.cookie));
-        strncpy(newUser.userAlias, user.userAlias, sizeof(newUser.userAlias) - 1);
-        strncpy(newUser.username, user.username, sizeof(newUser.username) - 1);
-        newUser.allowedTo   = user.allowedTo;
-        newUser.isSubscriber = false;
-        newUser.clientId[0]  = '\0';
-        newUser.lastActivity = std::time(nullptr);
-        activeUsers[activeUsersCount++] = newUser;
-    }
-    return newUser;
-}
 
 void Auth::logout(const char* cookie) {
     int index = -1;
@@ -168,15 +168,14 @@ bool Auth::deleteRole(const char* username) {
     return true;
 }
 
-void Auth::informSocket(const char* cookie, const char* clientId, bool isConnected) {
+void Auth::informSocket(const char* cookie, const uint32_t clientId, bool isConnected) {
     for (int i = 0; i < activeUsersCount; i++) {
-        if (strcmp(activeUsers[i].cookie, cookie) == 0 || strcmp(activeUsers[i].clientId, clientId) == 0) {
+        if (strcmp(activeUsers[i].cookie, cookie) == 0 || activeUsers[i].clientId == clientId) {
             if (isConnected) {
-                strncpy(activeUsers[i].clientId, clientId, sizeof(activeUsers[i].clientId) - 1);
-                activeUsers[i].clientId[sizeof(activeUsers[i].clientId) - 1] = '\0';
+                activeUsers[i].clientId = clientId;
                 activeUsers[i].isSubscriber = true;
             } else {
-                activeUsers[i].clientId[0] = '\0';
+                activeUsers[i].clientId = 0;
                 activeUsers[i].isSubscriber = false;
             }
             activeUsers[i].lastActivity = std::time(nullptr);

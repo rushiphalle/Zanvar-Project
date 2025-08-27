@@ -4,32 +4,44 @@
 #include <cstring>
 #include <ctime>
 
-struct DynamicMRArray {
-    float data[30];  
-    int size = 0;         
-};
+#define MAX_ROLES 5
+#define MAX_ROLE_SIZE 10
+#define MAX_STRING_LENGTH 32
 
+//1) struct for user control
+//1.1) struct to store user action array
 struct DynamicRoleArray {
-    char data[5][10];  
+    char data[MAX_ROLES][MAX_ROLE_SIZE];  
     int size = 0;         
 };
 
+//1.2) struct to store user records
+struct User {
+    char username[MAX_STRING_LENGTH];
+    char password[MAX_STRING_LENGTH];
+    char userAlias[MAX_STRING_LENGTH];
+    DynamicRoleArray allowedTo;
+};
+
+//1.3) struct to store active users in ram
 struct ActiveUser {
         char cookie[16];
-        char userAlias[32];
-        char username[32];
-        DynamicRoleArray allowedTo;
+        char userAlias[MAX_STRING_LENGTH];
+        char username[MAX_STRING_LENGTH];
         bool valid;
         int errCode;
         bool isSubscriber;
-        char clientId[32];
+        uint32_t clientId;
         time_t lastActivity; 
+        DynamicRoleArray allowedTo;
 };
 
+//2) struct to store string in db like ssid, password
 struct FixedString32 {
-    char value[32];
+    char value[MAX_STRING_LENGTH];
 };
 
+//3) struct to store spc settings
 struct SPCSettings {
     float a2;
     float d3; 
@@ -37,12 +49,20 @@ struct SPCSettings {
     float usl;
     float lsl;
     int datapointSize;
-    char machineName[32]; 
+    char machineName[MAX_STRING_LENGTH]; 
     char machineIP[16];  
     int toolOffsetNumber;
     int offsetSize; 
 };
 
+//4) structs to store spc results
+//4.1) strucst to store mr array 
+struct DynamicMRArray {
+    float data[30];  
+    int size = 0;         
+};
+
+//4.2) struct to store spc result
 struct SPCResult {
     float xBar;
     float stdDev;
@@ -55,13 +75,6 @@ struct SPCResult {
     float cpk;
     DynamicMRArray mrArray;
     bool isDrifting;
-};
-
-struct User {
-    char username[32];
-    char password[32];
-    char userAlias[32];
-    DynamicRoleArray allowedTo;
 };
 
 #endif // STDSTRUCTS_H

@@ -27,7 +27,7 @@ public:
     static bool createNewUser(const char* username, const char* password,
                               const char* userAlias, const char allowedTo[][10], int size);
     static bool deleteRole(const char* username);
-    static void informSocket(const char* cookie, const char* clientId, bool isConnected);
+    static void informSocket(const char* cookie, const uint32_t clientId, bool isConnected);
 };
 
 #endif // AUTH_H
