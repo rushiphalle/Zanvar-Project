@@ -70,8 +70,6 @@ namespace AppCore {
 
         generalDb.set("SSID", ssidObj);
         generalDb.set("PASSWORD", passwordObj);
-
-        return true;
     }
 
     inline void getSettings(char* outBuffer, size_t bufferSize) {

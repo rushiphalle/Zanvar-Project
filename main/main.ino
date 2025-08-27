@@ -12,12 +12,12 @@ void setup(){
     spcDb.begin();
     userRolesDb.begin();
 //Initialize Default Config
-    if(!generalDb.has("ssid") || !generalDb.has("password")){
+    if(!generalDb.has("SSID") || !generalDb.has("PASSWORD")){
         Serial.println("Config Parameters Not Found! Setting Up Default Parameters! - WIFI Credintials");
         FixedString32 ssid = {"ZANVAR_INDUSTRY"};
         FixedString32 password = {"12345678"};
-        generalDb.set("ssid", ssid);
-        generalDb.set("password", password);
+        generalDb.set("SSID", ssid);
+        generalDb.set("PASSWORD", password);
     }  
     if(!userRolesDb.has("admin")){
         Serial.println("Config Parameters Not Found! Setting Up Default Parameters! - ADMIN Credintials");
