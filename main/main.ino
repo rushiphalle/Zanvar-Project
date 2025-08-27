@@ -3,6 +3,7 @@
 #include "MyWebserver.h"    //To handle webserver backend -- Read /docs/MyWebserver.md
 #include "stdStructs.h"     //This exposes user defined structures necessary to enwrap multiple related variables -- Read /docs/stdStructs.md
 
+
 void setup(){
 //Begin Serial Output
     Serial.begin(115200);
@@ -11,7 +12,7 @@ void setup(){
     spcDb.begin();
     userRolesDb.begin();
 //Initialize Default Config
-    if(!generalDb.has("ssid") || !generalDb.has("ssid")){
+    if(!generalDb.has("ssid") || !generalDb.has("password")){
         Serial.println("Config Parameters Not Found! Setting Up Default Parameters! - WIFI Credintials");
         FixedString32 ssid = {"ZANVAR_INDUSTRY"};
         FixedString32 password = {"12345678"};
@@ -22,6 +23,7 @@ void setup(){
         Serial.println("Config Parameters Not Found! Setting Up Default Parameters! - ADMIN Credintials");
         User adminRole = {};
         strncpy(adminRole.username, "admin", sizeof(adminRole.username) - 1);
+        strncpy(adminRole.userAlias, "admin", sizeof(adminRole.userAlias) - 1);
         strncpy(adminRole.password, "admin123", sizeof(adminRole.password) - 1);
         strncpy(adminRole.allowedTo.data[0], "SETTING", sizeof(adminRole.allowedTo.data[0]) - 1);
         strncpy(adminRole.allowedTo.data[1], "SECURITY", sizeof(adminRole.allowedTo.data[1]) - 1);
@@ -32,9 +34,11 @@ void setup(){
 //Begin Webserver
     webserver.begin();
 //Begin Input Stream Reading
-    inputStream.begin();
+   inputStream.begin();
 }
 
 void loop(){
     //nothing is needed here
+    inputStream.read();
+    delay(5000);
 }

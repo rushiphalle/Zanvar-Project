@@ -31,13 +31,13 @@ private:
     MyWebserver() : server(80), ws("/subscribe") {
         activeSubscribers = 0;
         for (int i = 0; i < SUBSCRIBER_CAPACITY; ++i) {
-            subscribersList[i].clientId[0] = '\0';
+            subscribersList[i].clientId = 0;
             subscribersList[i].channel[0] = '\0';
         }
 
         activeSocket = 0;
         for (int i = 0; i < MAX_SOCKET; ++i) {
-            clientList[i].clientId[0] = '\0';
+            clientList[i].clientId = 0;
             clientList[i].sessionId[0] = '\0';
             clientList[i].isVerified = false;
         }
@@ -51,14 +51,14 @@ private:
     char password[STRING_LENGTH];
 
     struct Subscriber {
-        char clientId[STRING_LENGTH];            
+        uint32_t clientId;            
         char channel[CHANNEL_NAME_SIZE];      
     };
     Subscriber subscribersList[SUBSCRIBER_CAPACITY];
     int activeSubscribers = 0;
 
     struct SocketClient{
-        char clientId[STRING_LENGTH];  
+        uint32_t clientId;  
         char sessionId[16]; 
         bool isVerified; 
     };
@@ -95,12 +95,10 @@ private:
     }
 
     //2) Add Subscriber - to add new subscriber in the subcription list
-    bool addSubscriber(const char* clientId, const char* channel) {
-        if (!clientId || !channel) return false;
-
+    bool addSubscriber(const uint32_t clientId, const char* channel) {
         // avoid duplicates
         for (int i = 0; i < activeSubscribers; ++i) {
-            if (strncmp(subscribersList[i].clientId, clientId, STRING_LENGTH) == 0 &&
+            if (subscribersList[i].clientId == clientId &&
                 strncmp(subscribersList[i].channel, channel, CHANNEL_NAME_SIZE) == 0) {
                 // already subscribed
                 return true;
@@ -112,28 +110,26 @@ private:
 
         // create new record
         int idx = activeSubscribers++;
-        strncpy(subscribersList[idx].clientId, clientId, STRING_LENGTH - 1);
-        subscribersList[idx].clientId[STRING_LENGTH - 1] = '\0';
+        subscribersList[idx].clientId = clientId;
         strncpy(subscribersList[idx].channel, channel, CHANNEL_NAME_SIZE - 1);
         subscribersList[idx].channel[CHANNEL_NAME_SIZE - 1] = '\0';
         return true;
     }
 
     //3) Remove Subscriber - to remove ew subscriber from the subcription list
-    bool removeSubscriber(const char* clientId, const char* channel) {
-        if (!clientId || !channel) return false;
+    bool removeSubscriber(const uint32_t clientId, const char* channel) {
         bool removed = false;
         bool removeAll = (strcmp(channel, "*") == 0);
 
         for (int i = 0; i < activeSubscribers; ) {
-            if (strncmp(subscribersList[i].clientId, clientId, STRING_LENGTH) == 0 &&
+            if (subscribersList[i].clientId == clientId &&
                 (removeAll || strcmp(subscribersList[i].channel, channel) == 0)) {
                 // remove this entry by shifting left
                 for (int j = i; j < activeSubscribers - 1; ++j) {
                     subscribersList[j] = subscribersList[j + 1];
                 }
                 // clear last slot
-                subscribersList[activeSubscribers - 1].clientId[0] = '\0';
+                subscribersList[activeSubscribers - 1].clientId = 0;
                 subscribersList[activeSubscribers - 1].channel[0] = '\0';
                 --activeSubscribers;
                 removed = true;
@@ -166,7 +162,7 @@ private:
     }
 
     //5) Add Client - To add new record for new websocket connection
-    bool addClient(const char* clientId){
+    bool addClient(const uint32_t clientId){
         int index = -1;
 
         if(activeSocket < MAX_SOCKET){
@@ -182,8 +178,7 @@ private:
 
         if(index == -1) return false;
 
-        strncpy(clientList[index].clientId, clientId, STRING_LENGTH - 1);
-        clientList[index].clientId[STRING_LENGTH - 1] = '\0';
+        clientList[index].clientId = clientId;
         clientList[index].sessionId[0] = '\0';
         clientList[index].isVerified = false;
 
@@ -191,15 +186,15 @@ private:
     }
 
     //6) Remove Client - to remove the disconnected client
-    void removeClient(const char* clientId){
+    void removeClient(const uint32_t clientId){
         for(int i = 0; i < activeSocket; i++){
-            if(strcmp(clientList[i].clientId, clientId) == 0){
+            if(clientList[i].clientId == clientId){
                 // Shift everything left
                 for(int j = i; j < activeSocket - 1; j++){
                     clientList[j] = clientList[j + 1];
                 }
                 // Clear the last entry
-                clientList[activeSocket - 1].clientId[0] = '\0';
+                clientList[activeSocket - 1].clientId = 0;
                 clientList[activeSocket - 1].sessionId[0] = '\0';
                 clientList[activeSocket - 1].isVerified = false;
 
@@ -210,11 +205,11 @@ private:
     }
 
     //7) Mark As Verified - to mark the connected websocket client as verified and authenticated
-    void markAsVerified(const char* clientId, const char* sessionId){
+    void markAsVerified(const uint32_t clientId, const char* sessionId){
         for(int i=0; i<activeSocket; i++){
-            if(strcmp(clientList[i].clientId, clientId) == 0){
-                strncpy(clientList[i].sessionId, sessionId, STRING_LENGTH - 1);
-                clientList[i].sessionId[STRING_LENGTH - 1] = '\0';
+            if(clientList[i].clientId == clientId){
+                strncpy(clientList[i].sessionId, sessionId, 15);
+                clientList[i].sessionId[15] = '\0';
                 clientList[i].isVerified = true;
                 return;
             }
@@ -222,13 +217,13 @@ private:
     }
 
     //8) Is verified - to check whether the client is verified/ authenticated or not
-    bool isVerified(const char* clientId, char* outString){
+    bool isVerified(const uint32_t clientId, char* outString){
         for(int i=0; i<activeSocket; i++){
-            if(strcmp(clientList[i].clientId, clientId) == 0){
+            if(clientList[i].clientId == clientId){
                 if(clientList[i].isVerified){
                     if(outString != nullptr){
-                        strncpy(outString, clientList[i].sessionId, STRING_LENGTH - 1);
-                        outString[STRING_LENGTH - 1] = '\0';
+                        strncpy(outString, clientList[i].sessionId, 15);
+                        outString[15] = '\0';
                     }
                     return true;
                 }
@@ -303,105 +298,102 @@ public:
         Serial.print("SSID: "); Serial.println(ssid);
         Serial.print("Password: "); Serial.println(password);
 
-        // WebSocket event handler
-        ws.onEvent([this](AsyncWebSocket *serverPtr, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
-            char clientIdStr[STRING_LENGTH];
-            snprintf(clientIdStr, sizeof(clientIdStr), "%u", client->id());
+//        WebSocket event handler
+       ws.onEvent([this](AsyncWebSocket *serverPtr, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
+           uint32_t clientId = client->id();
+           switch (type) {
+               case WS_EVT_CONNECT: {
+                   // Ensure one socket per IP
+                   IPAddress remoteIp = client->remoteIP();
+                   for (auto &existingClient : serverPtr->getClients()) {
+                       if (existingClient.id() != client->id() &&
+                           existingClient.remoteIP() == client->remoteIP()) {
+                           existingClient.close(5003, "TOO MANY REQUESTS");
+                           return;
+                       }
+                   }
 
-            switch (type) {
-                case WS_EVT_CONNECT: {
-                    // Ensure one socket per IP
-                    IPAddress remoteIp = client->remoteIP();
-                    for (auto &existingClient : serverPtr->getClients()) {
-                        if (existingClient.id() != client->id() &&
-                            existingClient.remoteIP() == client->remoteIP()) {
-                            existingClient.close(5003, "TOO MANY REQUESTS");
-                            return;
-                        }
-                    }
+                   // Add client (unverified yet)
+                   if (!addClient(clientId)) {
+                       client->close(5004, "CLIENT CAPACITY FULL");
+                       return;
+                   }
+               } break;
 
-                    // Add client (unverified yet)
-                    if (!addClient(clientIdStr)) {
-                        client->close(5004, "CLIENT CAPACITY FULL");
-                        return;
-                    }
-                } break;
+               case WS_EVT_DISCONNECT: {
+                   char sessionId[16];
+                   if (isVerified(clientId, sessionId)) {
+                       Auth::informSocket(sessionId, clientId, false);
+                   }
+                   removeClient(clientId);
+                   removeSubscriber(clientId, "*");
+               } break;
 
-                case WS_EVT_DISCONNECT: {
-                    char sessionId[16];
-                    if (isVerified(clientIdStr, sessionId)) {
-                        Auth::informSocket(sessionId, clientIdStr, false);
-                    }
-                    removeClient(clientIdStr);
-                    removeSubscriber(clientIdStr, "*");
-                } break;
+               case WS_EVT_DATA: {
+                   char msg[64];
+                   size_t copyLen = (len < sizeof(msg) - 1) ? len : sizeof(msg) - 1;
+                   memcpy(msg, data, copyLen);
+                   msg[copyLen] = '\0';
 
-                case WS_EVT_DATA: {
-                    char msg[64];
-                    size_t copyLen = (len < sizeof(msg) - 1) ? len : sizeof(msg) - 1;
-                    memcpy(msg, data, copyLen);
-                    msg[copyLen] = '\0';
+                   // If not verified yet, expect VERIFY-SESSIONID
+                   char sessionId[16];
+                   if (!isVerified(clientId, sessionId)) {
+                       if (strncmp(msg, "VERIFY-", 7) == 0 && strlen(msg + 7) == 15) {
+                           strncpy(sessionId, msg + 7, 15);
+                           sessionId[15] = '\0';
+                           // TODO: validate sessionId via Auth::isValid(sessionId)
+                           if (!Auth::isValid(sessionId)) {
+                               client->close(4003, "UNAUTHORIZED");
+                               return;
+                           }
 
-                    // If not verified yet, expect VERIFY-SESSIONID
-                    char sessionId[16];
-                    if (!isVerified(clientIdStr, sessionId)) {
-                      Serial.print("Data Received= ");
-                        if (strncmp(msg, "VERIFY-", 7) == 0 && strlen(msg + 7) == 15) {
-                            strncpy(sessionId, msg + 7, 15);
-                            sessionId[15] = '\0';
-                            // TODO: validate sessionId via Auth::isValid(sessionId)
-                            if (!Auth::isValid(sessionId)) {
-                                client->close(4003, "UNAUTHORIZED");
-                                return;
-                            }
+                           Auth::informSocket(sessionId, clientId, true);
+                           
+                           markAsVerified(clientId, sessionId);
 
-                            Auth::informSocket(sessionId, clientIdStr, true);
-                            
-                            markAsVerified(clientIdStr, sessionId);
+                           client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"verify\",\"status\":true}}");
+                       } else {
+                           client->close(4003, "UNAUTHORIZED");
+                       }
+                       return;
+                   }
 
-                            client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"verify\",\"status\":true}}");
-                        } else {
-                            client->close(4003, "UNAUTHORIZED");
-                        }
-                        return;
-                    }
+                   // Client is verified → only SUB-XXXXXXXX or UNS-XXXXXXXX allowed
+                   if (strncmp(msg, "SUB-", 4) == 0) {
+                       char channel[CHANNEL_NAME_SIZE];
+                       strncpy(channel, msg + 4, CHANNEL_NAME_SIZE - 1);
+                       channel[CHANNEL_NAME_SIZE - 1] = '\0';
 
-                    // Client is verified → only SUB-XXXXXXXX or UNS-XXXXXXXX allowed
-                    if (strncmp(msg, "SUB-", 4) == 0) {
-                        char channel[CHANNEL_NAME_SIZE];
-                        strncpy(channel, msg + 4, CHANNEL_NAME_SIZE - 1);
-                        channel[CHANNEL_NAME_SIZE - 1] = '\0';
+                       if (strlen(channel) == 7) {
+                           bool success = addSubscriber(clientId, channel);
+                           if (success) {
+                               client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"status\":true}}");
+                           } else {
+                               client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"status\":false}}");
+                           }
+                       } else {
+                           client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"reason\":\"Channel Name not Valid\",\"status\":false}}");
+                       }
+                   } else if (strncmp(msg, "UNS-", 4) == 0) {
+                       char channel[CHANNEL_NAME_SIZE];
+                       strncpy(channel, msg + 4, CHANNEL_NAME_SIZE - 1);
+                       channel[CHANNEL_NAME_SIZE - 1] = '\0';
 
-                        if (strlen(channel) == 7) {
-                            bool success = addSubscriber(clientIdStr, channel);
-                            if (success) {
-                                client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"status\":true}}");
-                            } else {
-                                client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"status\":false}}");
-                            }
-                        } else {
+                       if (strlen(channel) == 7) {
+                           removeSubscriber(clientId, channel);
+                           client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"unsack\",\"status\":true}}");
+                       } else {
                             client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"reason\":\"Channel Name not Valid\",\"status\":false}}");
-                        }
-                    } else if (strncmp(msg, "UNS-", 4) == 0) {
-                        char channel[CHANNEL_NAME_SIZE];
-                        strncpy(channel, msg + 4, CHANNEL_NAME_SIZE - 1);
-                        channel[CHANNEL_NAME_SIZE - 1] = '\0';
+                       }
+                   } else {
+                       client->close(4005, "INVALID MESSAGE");
+                   }
+               } break;
 
-                        if (strlen(channel) == 7) {
-                            removeSubscriber(clientIdStr, channel);
-                            client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"unsack\",\"status\":true}}");
-                        } else {
-                             client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"reason\":\"Channel Name not Valid\",\"status\":false}}");
-                        }
-                    } else {
-                        client->close(4005, "INVALID MESSAGE");
-                    }
-                } break;
-
-                default:
-                    break;
-            }
-        });
+               default:
+                   break;
+           }
+       });
 
         // Instruct server to server webpage on default routes
         server.serveStatic("/", LittleFS, "/dist").setDefaultFile("index.html");
@@ -564,11 +556,9 @@ public:
         //7) POST /updateWifi {"ssid": "newSSID", "password":"newpassword"}
         server.on("/updateWifi", HTTP_POST,
             [this](AsyncWebServerRequest *request) {
-                Serial.println("[/updateWifi] POST request received");
             },
             nullptr,
             [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-                Serial.printf("[/updateWifi] Received %u bytes (index %u of %u)\n", len, index, total);
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
                 if (len >= 128) {
@@ -604,11 +594,9 @@ public:
         //7) POST /updateRole {"username": "username", "password":"newpassword", "userAlias":"newUserAlias", "allowedTo":["SETTING", "MONITOR"...]}
         server.on("/updateRole", HTTP_POST,
             [this](AsyncWebServerRequest *request) {
-                Serial.println("[/updateRole] POST request received");
             },
             nullptr,
             [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-                Serial.printf("[/updateRole] Received %u bytes (index %u of %u)\n", len, index, total);
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
                 if (len >= 256) {
@@ -675,22 +663,20 @@ public:
 
         for (int i = 0; i < activeSubscribers; ++i) {
             if (strncmp(subscribersList[i].channel, channel, CHANNEL_NAME_SIZE) == 0) {
-                uint32_t clientNumericId = (uint32_t) strtoul(subscribersList[i].clientId, nullptr, 10);
-                AsyncWebSocketClient* c = ws.client(clientNumericId);
+                uint32_t clientId = subscribersList[i].clientId;
+                AsyncWebSocketClient* c = ws.client(clientId);
                 if (c) {
                     c->text(out);
                 } else {
-                    ws.text(clientNumericId, out);
+                    ws.text(clientId, out);
                 }
             }
         }
     }
 
     //3) Disconnect Socket - To forcefully disconnect specific socket
-    void disconnectSocket(const char* clientId) {
-        if (!clientId) return;
-        uint32_t clientNumericId = (uint32_t) strtoul(clientId, nullptr, 10);
-        AsyncWebSocketClient* c = ws.client(clientNumericId);
+    void disconnectSocket(const uint32_t clientId) {
+        AsyncWebSocketClient* c = ws.client(clientId);
         if (c) c->close(5000, "FORCEFULLY LOGGED OUT");
     }
 };

@@ -19,66 +19,7 @@ function block(time) {
   };
 
   // Load users from localStorage or use defaults
-  function loadUsers() {
-    try {
-      const storedUsers = localStorage.getItem('zanvar_users');
-      if (storedUsers) {
-        return JSON.parse(storedUsers);
-      }
-    } catch (error) {
-      console.error('Error loading users from localStorage:', error);
-    }
-    return { ...defaultUsers };
-  }
 
-  // Save users to localStorage
-  function saveUsers() {
-    try {
-      localStorage.setItem('zanvar_users', JSON.stringify(users));
-      return true;
-    } catch (error) {
-      console.error('Error saving users to localStorage:', error);
-      return false;
-    }
-  }
-
-  // Load settings from localStorage or use defaults
-  function loadSettings() {
-    try {
-      const storedSettings = localStorage.getItem('zanvar_settings');
-      if (storedSettings) {
-        return JSON.parse(storedSettings);
-      }
-    } catch (error) {
-      console.error('Error loading settings from localStorage:', error);
-    }
-    return {
-      '700': {
-        a2: 1.30,
-        d3: 0,
-        d4: 3.50,
-        usl: 26.0,
-        lsl: 25.95,
-        datapointSize: 30, 
-        machineName: 'Rahul GAndhi',
-        machineIP: '192.16.1.1',
-        toolOffsetNumber: 641,
-        offsetSize: 51615.5,
-        active: true
-      }
-    };
-  }
-
-  // Save settings to localStorage
-  function saveSettings() {
-    try {
-      localStorage.setItem('zanvar_settings', JSON.stringify(settings));
-      return true;
-    } catch (error) {
-      console.error('Error saving settings to localStorage:', error);
-      return false;
-    }
-  }
 
   // Initialize users from localStorage or defaults
   let users = loadUsers();
@@ -533,4 +474,4 @@ function getData() {
     }, 5000);
   }
   
-//   test();
+  test();

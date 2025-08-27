@@ -10,7 +10,7 @@
 #define MAX_KEYS 10
 #define MAX_KEY_LEN 32
 
-// ------------------------- KeyStore Singleton -------------------------
+//class to store keys in each db instance
 class KeyStore {
 public:
     struct KeyList {
@@ -83,7 +83,6 @@ private:
     }
 };
 
-// ------------------------- MyDB Template -------------------------
 template <typename T>
 class MyDB {
 private:

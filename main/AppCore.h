@@ -271,13 +271,11 @@ namespace AppCore {
             "\"valid\":%s,"
             "\"errCode\":%d,"
             "\"isSubscriber\":%s,"
-            "\"clientId\":\"%s\","
             "\"lastActivity\":%lu"
             "}",
             user->valid ? "true" : "false",
             user->errCode,
             user->isSubscriber ? "true" : "false",
-            user->clientId,
             (unsigned long)user->lastActivity
         );
         (void)written;
