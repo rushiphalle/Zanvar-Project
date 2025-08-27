@@ -1,7 +1,7 @@
 #ifndef MYSPCCALCULATOR_H
 #define MYSPCCALCULATOR_H
 
-#include "stdstructs.h"
+#include "stdStructs.h"
 #include <math.h>     // pow, sqrt
 #include <algorithm>  // std::min
 
