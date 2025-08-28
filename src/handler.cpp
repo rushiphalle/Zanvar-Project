@@ -12,12 +12,12 @@ void streamMonitor(const char* monitorCode, float values[30], int elementsInArra
 
     // Start JSON
     snprintf(jsonBuffer, sizeof(jsonBuffer),
-        "{\n  monitorCode: '%s',\n  tableData: [\n", monitorCode);
+        "{\n  \"monitorCode\": \"%s\",\n  \"tableData\": [\n", monitorCode);
 
     // Add tableData values + MR from result.mrArray
     for (int i = 0; i < elementsInArray; i++) {
         snprintf(temp, sizeof(temp),
-            "    { value: %.2f, MR: %.2f }%s\n",
+            "    { \"value\": %.2f, \"MR\": %.2f }%s\n",
             values[i],
             (i < result.mrArray.size ? result.mrArray.data[i] : 0.0),
             (i == elementsInArray - 1 ? "" : ","));
@@ -26,20 +26,20 @@ void streamMonitor(const char* monitorCode, float values[30], int elementsInArra
 
     // Close tableData and add rest
     snprintf(temp, sizeof(temp),
-        "  ],\n"
-        "  'X-bar': %.2f,\n"
-        "  stdDev: %.2f,\n"
-        "  avgMR: %.2f,\n"
-        "  UCL_X: %.2f,\n"
-        "  LCL_X: %.2f,\n"
-        "  UCL_MR: %.2f,\n"
-        "  LCL_MR: %.2f,\n"
-        "  cp: %.2f,\n"
-        "  cpk: %.2f,\n"
-        "  isDrifting: %s,\n"
-        "  usl: %.2f,\n"
-        "  lsl: %.2f\n"
-        "}\n",
+        "  ],\n
+        \"X-bar\": %.2f,\n
+         \"stdDev\": %.2f,\n
+          \"avgMR\": %.2f,\n
+          \"UCL_X\": %.2f,\n
+          \"LCL_X\": %.2f,\n
+          \"UCL_MR\": %.2f,\n
+          \"LCL_MR\": %.2f,\n
+          \"cp\": %.2f,\n
+          \"cpk\": %.2f,\n
+          \"isDrifting\": %s,\n
+          \"usl\": %.2f,\n
+          \"lsl\": %.2f\n
+        }",
         result.xBar,
         result.stdDev,
         result.avgMR,
@@ -56,7 +56,7 @@ void streamMonitor(const char* monitorCode, float values[30], int elementsInArra
     strncat(jsonBuffer, temp, sizeof(jsonBuffer) - strlen(jsonBuffer) - 1);
 
     // // Print JSON string
-    // Serial.println(jsonBuffer);
+    Serial.println(jsonBuffer);
     MyWebserver::getInstance().publish("MONITOR", jsonBuffer);
 }
 
