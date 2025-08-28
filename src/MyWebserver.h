@@ -306,8 +306,7 @@ public:
                    // Ensure one socket per IP
                    IPAddress remoteIp = client->remoteIP();
                    for (auto &existingClient : serverPtr->getClients()) {
-                       if (existingClient.id() != client->id() &&
-                           existingClient.remoteIP() == client->remoteIP()) {
+                       if (existingClient.id() != client->id() && existingClient.remoteIP() == client->remoteIP()) {
                            existingClient.close(5003, "TOO MANY REQUESTS");
                            return;
                        }
@@ -334,6 +333,8 @@ public:
                    size_t copyLen = (len < sizeof(msg) - 1) ? len : sizeof(msg) - 1;
                    memcpy(msg, data, copyLen);
                    msg[copyLen] = '\0';
+                   Serial.print("msg received = ");
+                   Serial.println(msg);
 
                    // If not verified yet, expect VERIFY-SESSIONID
                    char sessionId[16];
