@@ -67,23 +67,42 @@ jobs:
         run: |
           cat << 'EOF' > build_output/flash.py
           #!/usr/bin/env python3
-          import os, sys, subprocess
+          import os
+          import sys
+          import subprocess
+          import serial.tools.list_ports
 
-          ESPTOOL = "esptool.py"
-          PORT = "--port"  # auto-detect is handled by esptool
+          # Function to auto-detect ESP32 port
+          def detect_esp32_port():
+              ports = list(serial.tools.list_ports.comports())
+              for port in ports:
+                  if any(keyword in port.device.lower() for keyword in ["ttyusb", "ttyacm", "usb"]):
+                      return port.device
+              return None
 
+          # Detect port
+          port = detect_esp32_port()
+          if not port:
+              print("Error: ESP32 not detected. Please connect the board.")
+              sys.exit(1)
+
+          print(f"Detected ESP32 on port: {port}")
+
+          # Prepare flash command
           cmd = [
-              ESPTOOL, PORT, "auto", "--chip", "esp32",
+              "esptool.py",
+              "--chip", "esp32",
+              "--port", port,
               "write_flash", "-z",
               "0x1000", "bootloader.bin",
               "0x8000", "partitions.bin",
-              "0xe000", "boot_app0.bin" if os.path.exists("boot_app0.bin") else "",
               "0x10000", "firmware.bin",
               "0x310000", "littlefs.bin"
           ]
-          cmd = [c for c in cmd if c]  # remove empty entries
 
           print("Running:", " ".join(cmd))
+
+          # Execute flashing
           subprocess.run(cmd, check=True)
           EOF
           chmod +x build_output/flash.py

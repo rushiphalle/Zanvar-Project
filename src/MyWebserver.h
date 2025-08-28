@@ -428,7 +428,7 @@ public:
             }
             
            char cookieBuf[128];
-           snprintf(cookieBuf, sizeof(cookieBuf), "session_id=%s; Path=/; SameSite=None; Secure", activeUser.cookie);
+           snprintf(cookieBuf, sizeof(cookieBuf), "session_id=%s; Path=/", activeUser.cookie);
 
             
             char jsonBuf[256]; // adjust based on max expected size
@@ -648,12 +648,6 @@ public:
             }
         });
 
-        // Global CORS handler
-        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "http://127.0.0.1:5500");
-        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Credentials", "true");
-        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        Serial.println("CORS policy set");
         server.addHandler(&ws);
         server.begin();
     } 
