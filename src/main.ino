@@ -37,8 +37,44 @@ void setup(){
    inputStream.begin();
 }
 
+
+/*DEMO INPUT LOGIC*/
+float getRandomFloat(float a, float b) {
+  if (a > b) {
+    float temp = a;
+    a = b;
+    b = temp;
+  }
+
+  // Generate random 32-bit number
+  uint32_t r = esp_random();
+
+  // Normalize to [0,1]
+  float normalized = (float)r / (float)UINT32_MAX;
+
+  // Scale to [a, b]
+  float randomVal = a + normalized * (b - a);
+
+  // Round to 3 decimals
+  randomVal = roundf(randomVal * 1000.0f) / 1000.0f;
+
+  return randomVal;
+}
+
+
 void loop(){
     //nothing is needed here
     inputStream.read();
     delay(5000);
+
+
+    /*DEMO INPUT LOGIC*/
+    auto keys = spcDb.getKeys();
+    for(int i=0; i<keys.size; i++){
+        SPCSettings data;
+        if (spcDb.get(keys.keys[i], &data)) {
+            spcHandler.insertParameter(keys.keys[i], getRandomFloat(data.lsl, data.usl));  
+        }
+    }
+    delay(20000);
 }

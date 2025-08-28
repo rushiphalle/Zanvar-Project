@@ -648,7 +648,8 @@ public:
             }
         });
 
-
+        // Global CORS handler
+        DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
         server.addHandler(&ws);
         server.begin();
     } 
