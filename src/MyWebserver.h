@@ -221,7 +221,7 @@ private:
         Serial.print("Inside Is Verified activeSocket = ");
         Serial.println(activeSocket);
         Serial.print("Inside Is Verified clientId = ");
-        Serial.println(ClientId);
+        Serial.println(clientId);
         for(int i=0; i<activeSocket; i++){
             if(clientList[i].clientId == clientId){
                 if(clientList[i].isVerified){
