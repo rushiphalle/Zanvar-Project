@@ -218,6 +218,10 @@ private:
 
     //8) Is verified - to check whether the client is verified/ authenticated or not
     bool isVerified(const uint32_t clientId, char* outString){
+        Serial.print("Inside Is Verified activeSocket = ");
+        Serial.println(activeSocket);
+        Serial.print("Inside Is Verified clientId = ");
+        Serial.println(ClientId);
         for(int i=0; i<activeSocket; i++){
             if(clientList[i].clientId == clientId){
                 if(clientList[i].isVerified){
@@ -227,9 +231,11 @@ private:
                     }
                     return true;
                 }
+                Serial.println("ClientId Not Verified Yet = ");
                 return false;
             }
         }
+        Serial.println("ClientId Not dound = ");
         return false;
     }
 
@@ -346,7 +352,7 @@ public:
                    char sessionId[16];
                    if (!isVerified(clientId, sessionId)) {
                     Serial.print("its unverified = ");
-                   Serial.println(msg);
+                    Serial.println(msg);
                        if (strncmp(msg, "VERIFY-", 7) == 0 && strlen(msg + 7) == 15) {
                            strncpy(sessionId, msg + 7, 15);
                            sessionId[15] = '\0';
