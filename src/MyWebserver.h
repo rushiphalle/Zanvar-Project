@@ -303,6 +303,8 @@ public:
            uint32_t clientId = client->id();
            switch (type) {
                case WS_EVT_CONNECT: {
+                Serial.print("Socket connected = ");
+                   Serial.println(clientId);
                    // Ensure one socket per IP
                    IPAddress remoteIp = client->remoteIP();
                    for (auto &existingClient : serverPtr->getClients()) {
@@ -320,9 +322,13 @@ public:
                } break;
 
                case WS_EVT_DISCONNECT: {
+                Serial.print("Socket Disconnected = ");
+                   Serial.println(clientId);
                    char sessionId[16];
                    if (isVerified(clientId, sessionId)) {
                        Auth::informSocket(sessionId, clientId, false);
+                       Serial.print("Socket Disconnected - verified = ");
+                   Serial.println(sessionId);
                    }
                    removeClient(clientId);
                    removeSubscriber(clientId, "*");
@@ -339,6 +345,8 @@ public:
                    // If not verified yet, expect VERIFY-SESSIONID
                    char sessionId[16];
                    if (!isVerified(clientId, sessionId)) {
+                    Serial.print("its unverified = ");
+                   Serial.println(msg);
                        if (strncmp(msg, "VERIFY-", 7) == 0 && strlen(msg + 7) == 15) {
                            strncpy(sessionId, msg + 7, 15);
                            sessionId[15] = '\0';
@@ -351,9 +359,12 @@ public:
                            Auth::informSocket(sessionId, clientId, true);
                            
                            markAsVerified(clientId, sessionId);
-
+Serial.print("authenticated = ");
+                   Serial.println(clientId);
                            client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"verify\",\"status\":true}}");
                        } else {
+                        Serial.print("bad msg = ");
+                   Serial.println(clientId);
                            client->close(4000, "BAD MESSAGE");
                        }
                        return;
