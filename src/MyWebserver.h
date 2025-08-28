@@ -650,6 +650,7 @@ public:
 
         // Global CORS handler
         DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+        Serial.println("CORS policy set");
         server.addHandler(&ws);
         server.begin();
     } 
