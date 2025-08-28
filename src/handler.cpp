@@ -56,7 +56,6 @@ void streamMonitor(const char* monitorCode, float values[30], int elementsInArra
     strncat(jsonBuffer, temp, sizeof(jsonBuffer) - strlen(jsonBuffer) - 1);
 
     // Print JSON string
-    Serial.println(jsonBuffer);
     MyWebserver::getInstance().publish("MONITOR", jsonBuffer);
 }
 
