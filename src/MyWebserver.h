@@ -428,7 +428,7 @@ public:
             }
             
            char cookieBuf[128];
-           snprintf(cookieBuf, sizeof(cookieBuf), "session_id=%s; Path=/", activeUser.cookie);
+           snprintf(cookieBuf, sizeof(cookieBuf), "session_id=%s; Path=/; SameSite=None; Secure", activeUser.cookie);
 
             
             char jsonBuf[256]; // adjust based on max expected size
