@@ -353,7 +353,7 @@ public:
 
                            client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"verify\",\"status\":true}}");
                        } else {
-                           client->close(4003, "UNAUTHORIZED");
+                           client->close(4000, "BAD MESSAGE");
                        }
                        return;
                    }
@@ -656,7 +656,7 @@ public:
     void publish(const char* channel, const char* msg) {
         if (!channel || !msg) return;
 
-        char out[512];
+        char out[3072];
         snprintf(out, sizeof(out), "{\"type\":\"content\",\"channel\":\"%s\",\"data\":%s}", channel, msg);
 
         for (int i = 0; i < activeSubscribers; ++i) {
