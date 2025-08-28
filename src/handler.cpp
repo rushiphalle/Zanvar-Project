@@ -5,60 +5,43 @@
 #include <ctime>
 #include "CNCHandler.h"
 
-void streamMonitor(const char* monitorCode, float values[30], int elementsInArray, 
-                   SPCSettings setting, SPCResult result) {
-    static char jsonBuffer[4096];  // large enough buffer for JSON string
-    char temp[256];
+void streamMonitor(const char* monitorCode, float values[30], int elementsInArray, SPCSettings setting, SPCResult result) {
+    StaticJsonDocument<4096> doc;   // Adjust size if needed
 
-    // Start JSON
-    snprintf(jsonBuffer, sizeof(jsonBuffer),
-        "{\n  \"monitorCode\": \"%s\",\n  \"tableData\": [\n", monitorCode);
+    // Root object
+    doc["monitorCode"] = monitorCode;
 
-    // Add tableData values + MR from result.mrArray
+    // Table data (array of objects)
+    JsonArray tableData = doc.createNestedArray("tableData");
     for (int i = 0; i < elementsInArray; i++) {
-        snprintf(temp, sizeof(temp),
-            "    { \"value\": %.2f, \"MR\": %.2f }%s\n",
-            values[i],
-            (i < result.mrArray.size ? result.mrArray.data[i] : 0.0),
-            (i == elementsInArray - 1 ? "" : ","));
-        strncat(jsonBuffer, temp, sizeof(jsonBuffer) - strlen(jsonBuffer) - 1);
+        JsonObject entry = tableData.createNestedObject();
+        entry["value"] = values[i];
+        entry["MR"] = (i < result.mrArray.size ? result.mrArray.data[i] : 0.0);
     }
 
-    // Close tableData and add rest
-    snprintf(temp, sizeof(temp),
-        "  ],\n
-        \"X-bar\": %.2f,\n
-         \"stdDev\": %.2f,\n
-          \"avgMR\": %.2f,\n
-          \"UCL_X\": %.2f,\n
-          \"LCL_X\": %.2f,\n
-          \"UCL_MR\": %.2f,\n
-          \"LCL_MR\": %.2f,\n
-          \"cp\": %.2f,\n
-          \"cpk\": %.2f,\n
-          \"isDrifting\": %s,\n
-          \"usl\": %.2f,\n
-          \"lsl\": %.2f\n
-        }",
-        result.xBar,
-        result.stdDev,
-        result.avgMR,
-        result.UCL_X,
-        result.LCL_X,
-        result.UCL_MR,
-        result.LCL_MR,
-        result.cp,
-        result.cpk,
-        (result.isDrifting ? "true" : "false"),
-        setting.usl,
-        setting.lsl);
+    // Add SPC results
+    doc["X-bar"]      = result.xBar;
+    doc["stdDev"]     = result.stdDev;
+    doc["avgMR"]      = result.avgMR;
+    doc["UCL_X"]      = result.UCL_X;
+    doc["LCL_X"]      = result.LCL_X;
+    doc["UCL_MR"]     = result.UCL_MR;
+    doc["LCL_MR"]     = result.LCL_MR;
+    doc["cp"]         = result.cp;
+    doc["cpk"]        = result.cpk;
+    doc["isDrifting"] = result.isDrifting;
+    doc["usl"]        = setting.usl;
+    doc["lsl"]        = setting.lsl;
 
-    strncat(jsonBuffer, temp, sizeof(jsonBuffer) - strlen(jsonBuffer) - 1);
+    // Serialize to buffer
+    static char jsonBuffer[4096];
+    size_t len = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
 
-    // // Print JSON string
-    Serial.println(jsonBuffer);
+    // Print & publish
+    Serial.write(jsonBuffer, len);
     MyWebserver::getInstance().publish("MONITOR", jsonBuffer);
 }
+
 
 void handleResult(const char* monitorCode, float values[30], int elementsInArray, SPCSettings setting, SPCResult result) {
     if (result.isDrifting) {
