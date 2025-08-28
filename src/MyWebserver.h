@@ -316,7 +316,7 @@ public:
                    for (auto &existingClient : serverPtr->getClients()) {
                        if (existingClient.id() != client->id() && existingClient.remoteIP() == client->remoteIP()) {
                            existingClient.close(5003, "TOO MANY REQUESTS");
-                           return;
+                        //    return;
                        }
                    }
 
