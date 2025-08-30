@@ -20,7 +20,7 @@ void streamMonitor(const char* monitorCode, float values[30], int elementsInArra
     }
 
     // Add SPC results
-    doc["X-bar"]      = result.xBar;
+    doc["xBar"]      = result.xBar;
     doc["stdDev"]     = result.stdDev;
     doc["avgMR"]      = result.avgMR;
     doc["UCL_X"]      = result.UCL_X;
