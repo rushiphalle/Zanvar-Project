@@ -25,11 +25,12 @@ inline SPCResult calculate(SPCSettings setting, float values[], int elementsInAr
     // --- 2. Moving Ranges ---
     float sumMR = 0.0f;
     result.avgMR = 0.0f;
-    result.mrArray.size = (elementsInArray > 1) ? elementsInArray - 1 : 0;
+    result.mrArray.size = (elementsInArray > 1) ? elementsInArray : 0;
+    result.mrArray.data[0] = 0;
 
     for (int i = 1; i < elementsInArray; i++) {
         float mr = fabs(values[i] - values[i - 1]);
-        result.mrArray.data[i - 1] = roundToThreeDecimals(mr);
+        result.mrArray.data[i] = roundToThreeDecimals(mr);
         sumMR += mr;
     }
 
