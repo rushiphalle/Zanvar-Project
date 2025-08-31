@@ -17,7 +17,7 @@ namespace AppCore {
         return true;
     }
 
-    inline bool update(const char* monitorCode, float a2, float d3, float d4, float usl, float lsl, int datapointSize, const char* machineName, const char* machineIP, int toolOffsetNumber, int offsetSize){
+    inline bool update(const char* monitorCode, float a2, float d3, float d4, float usl, float lsl, int datapointSize, const char* machineName, const char* machineIP, int toolOffsetNumber, float offsetSize){
         auto keys = spcDb.getKeys();
         bool isExist = false;
 
@@ -100,16 +100,16 @@ namespace AppCore {
 
             n = std::snprintf(outBuffer + offset, bufferSize - offset,
                 "  \"%s\": {\n"
-                "    \"a2\": %.2f,\n"
-                "    \"d3\": %.2f,\n"
-                "    \"d4\": %.2f,\n"
-                "    \"usl\": %.2f,\n"
-                "    \"lsl\": %.2f,\n"
+                "    \"a2\": %.3f,\n"
+                "    \"d3\": %.3f,\n"
+                "    \"d4\": %.3f,\n"
+                "    \"usl\": %.3f,\n"
+                "    \"lsl\": %.3f,\n"
                 "    \"datapointSize\": %d,\n"
                 "    \"machineName\": \"%s\",\n"
                 "    \"machineIP\": \"%s\",\n"
                 "    \"toolOffsetNumber\": %d,\n"
-                "    \"offsetSize\": %d\n"
+                "    \"offsetSize\": %.3f\n"
                 "  }",
                 keys.keys[i],
                 setting.a2,

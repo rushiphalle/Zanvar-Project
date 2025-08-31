@@ -45,7 +45,6 @@ private:
                 // Overflow -> reset
                 bufferIndex = 0;
                 capturing = false;
-                Serial.println("Error: Buffer overflow in MyInputHandler");
             }
         }
     }

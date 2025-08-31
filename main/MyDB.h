@@ -126,7 +126,6 @@ public:
             }
         }
 
-        Serial.println("MyDB: No space for more instances!");
         while (true) { delay(1000); }
     }
 
@@ -140,7 +139,6 @@ public:
     void set(const char* key, const T& value) {
         if (!initialized) return;
         prefs.putBytes(key, &value, sizeof(T));
-        Serial.printf("[%s] Set key: %s\n", ns, key);
 
         // Add key to KeyStore
         KeyStore::getInstance().addKey(ns, key);
@@ -150,7 +148,6 @@ public:
         if (!initialized || !out) return false;
         if (prefs.getBytesLength(key) == sizeof(T)) {
             prefs.getBytes(key, out, sizeof(T));
-            Serial.printf("[%s] Got key: %s\n", ns, key);
             return true;
         }
         return false;
@@ -165,7 +162,6 @@ public:
         if (!initialized) return;
         prefs.remove(key);
         KeyStore::getInstance().removeKey(ns, key);
-        Serial.printf("[%s] Removed key: %s\n", ns, key);
     }
 
     typename KeyStore::KeyList getKeys() {

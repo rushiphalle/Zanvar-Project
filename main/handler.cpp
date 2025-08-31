@@ -37,8 +37,6 @@ void streamMonitor(const char* monitorCode, float values[30], int elementsInArra
     static char jsonBuffer[4096];
     size_t len = serializeJson(doc, jsonBuffer, sizeof(jsonBuffer));
 
-    // Print & publish
-    Serial.write(jsonBuffer, len);
     MyWebserver::getInstance().publish("MONITOR", jsonBuffer);
 }
 

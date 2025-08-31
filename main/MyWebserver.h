@@ -12,6 +12,7 @@
 #include "AppCore.h"    //Business Logic
 #include "Auth.h"   //To handle Authentication
 #include <ArduinoJson.h>    //To parse JSON
+#include <Ticker.h>
 
 #include <cstring>
 
@@ -20,6 +21,7 @@
 #define STRING_LENGTH 32
 #define CHANNEL_NAME_SIZE 8
 #define SUBSCRIBER_CAPACITY (MAX_SOCKET * MAX_CHANNELS)
+#define CLIENT_TIMEOUT_MS 15000
 
 class MyWebserver {
 private:
@@ -35,11 +37,11 @@ private:
             subscribersList[i].channel[0] = '\0';
         }
 
-        activeSocket = 0;
         for (int i = 0; i < MAX_SOCKET; ++i) {
             clientList[i].clientId = 0;
             clientList[i].sessionId[0] = '\0';
             clientList[i].isVerified = false;
+            clientList[i].lastPong  = 0;
         }
     }
 
@@ -47,6 +49,7 @@ private:
     AsyncWebServer server;
     AsyncWebSocket ws;
     IPAddress ip;
+    Ticker heartbeatTicker;
     char ssid[STRING_LENGTH];
     char password[STRING_LENGTH];
 
@@ -57,14 +60,14 @@ private:
     Subscriber subscribersList[SUBSCRIBER_CAPACITY];
     int activeSubscribers = 0;
 
-    struct SocketClient{
-        uint32_t clientId;  
-        char sessionId[16]; 
-        bool isVerified; 
+    struct SocketClient {
+        uint32_t clientId;
+        char sessionId[16];
+        bool isVerified;
+        unsigned long lastPong; // timestamp of last pong
     };
 
     SocketClient clientList[MAX_SOCKET];
-    int activeSocket = 0;
 
     //Helper Private Function
     //1) Get Cookies - to parse session id of each request 
@@ -122,8 +125,7 @@ private:
         bool removeAll = (strcmp(channel, "*") == 0);
 
         for (int i = 0; i < activeSubscribers; ) {
-            if (subscribersList[i].clientId == clientId &&
-                (removeAll || strcmp(subscribersList[i].channel, channel) == 0)) {
+            if (subscribersList[i].clientId == clientId && (removeAll || strcmp(subscribersList[i].channel, channel) == 0)) {
                 // remove this entry by shifting left
                 for (int j = i; j < activeSubscribers - 1; ++j) {
                     subscribersList[j] = subscribersList[j + 1];
@@ -144,7 +146,8 @@ private:
     //4) Restart Server - to forcefully restart the server
     void restartServer() {
         Serial.println("[Server] Restarting...");
-
+        heartbeatTicker.detach();
+        
         // 1. Stop hotspot
         WiFi.softAPdisconnect(true);
         Serial.println("[Server] Hotspot stopped.");
@@ -162,52 +165,37 @@ private:
     }
 
     //5) Add Client - To add new record for new websocket connection
-    bool addClient(const uint32_t clientId){
-        int index = -1;
+    bool addClient(const uint32_t clientId) {
+      for (int i = 0; i < MAX_SOCKET; i++) {
+          if (clientList[i].clientId == 0) {   // free slot
+              clientList[i].clientId = clientId;
+              clientList[i].sessionId[0] = '\0';
+              clientList[i].isVerified = false;
+              clientList[i].lastPong  = millis();
+              return true;
+          }
+      }
+      return false; // no slot available
+  }
 
-        if(activeSocket < MAX_SOCKET){
-            index = activeSocket++;
-        } else {
-            for(int i=0; i<MAX_SOCKET; i++){
-                if(!clientList[i].isVerified){
-                    index = i;
-                    //break this user
-                    break;
-                }
-            }
-        }
-
-        if(index == -1) return false;
-
-        clientList[index].clientId = clientId;
-        clientList[index].sessionId[0] = '\0';
-        clientList[index].isVerified = false;
-
-        return true;
-    }
 
     //6) Remove Client - to remove the disconnected client
-    void removeClient(const uint32_t clientId){
-        for(int i = 0; i < activeSocket; i++){
-            if(clientList[i].clientId == clientId){
-                // Shift everything left
-                for(int j = i; j < activeSocket - 1; j++){
-                    clientList[j] = clientList[j + 1];
-                }
-                // Clear the last entry
-                clientList[activeSocket - 1].clientId = 0;
-                clientList[activeSocket - 1].sessionId[0] = '\0';
-                clientList[activeSocket - 1].isVerified = false;
-
-                activeSocket--; // reduce count
+    void removeClient(const uint32_t clientId) {
+        for (int i = 0; i < MAX_SOCKET; i++) {
+            if (clientList[i].clientId == clientId) {
+                clientList[i].clientId = 0;
+                clientList[i].sessionId[0] = '\0';
+                clientList[i].isVerified = false;
+                clientList[i].lastPong  = 0;
                 return;
             }
         }
     }
 
+
     //7) Mark As Verified - to mark the connected websocket client as verified and authenticated
     void markAsVerified(const uint32_t clientId, const char* sessionId){
-        for(int i=0; i<activeSocket; i++){
+        for(int i=0; i<MAX_SOCKET; i++){
             if(clientList[i].clientId == clientId){
                 strncpy(clientList[i].sessionId, sessionId, 15);
                 clientList[i].sessionId[15] = '\0';
@@ -219,11 +207,7 @@ private:
 
     //8) Is verified - to check whether the client is verified/ authenticated or not
     bool isVerified(const uint32_t clientId, char* outString){
-        Serial.print("Inside Is Verified activeSocket = ");
-        Serial.println(activeSocket);
-        Serial.print("Inside Is Verified clientId = ");
-        Serial.println(clientId);
-        for(int i=0; i<activeSocket; i++){
+        for(int i=0; i<MAX_SOCKET; i++){
             if(clientList[i].clientId == clientId){
                 if(clientList[i].isVerified){
                     if(outString != nullptr){
@@ -232,11 +216,9 @@ private:
                     }
                     return true;
                 }
-                Serial.println("ClientId Not Verified Yet = ");
                 return false;
             }
         }
-        Serial.println("ClientId Not dound = ");
         return false;
     }
 
@@ -258,6 +240,30 @@ private:
         return true;
     }
 
+    //10) custom Heartbeat (check for stale sockets and remove it)
+    void customHeartbeat() {
+        ws.pingAll();
+        unsigned long now = millis();
+        for (int i = 0; i < MAX_SOCKET; i++) {
+            if (now - clientList[i].lastPong > CLIENT_TIMEOUT_MS && clientList[i].clientId !=0 ) {
+                AsyncWebSocketClient* deadClient = ws.client(clientList[i].clientId);
+                if (deadClient) {
+                    deadClient->close(4000, "NO PONG"); // mark dead
+                }
+            }
+        }
+        ws.cleanupClients();
+    }
+
+    //11) Add Pong (adds latest pong interval)
+    void addPong(uint32_t clientId){
+        for (int i = 0; i < MAX_SOCKET; i++) {
+            if(clientList[i].clientId == clientId){
+                clientList[i].lastPong = millis();
+                break;
+            }
+        }
+    }
 
 public:
     static MyWebserver& getInstance() {
@@ -305,23 +311,25 @@ public:
         Serial.print("SSID: "); Serial.println(ssid);
         Serial.print("Password: "); Serial.println(password);
 
-//        WebSocket event handler
+//     WebSocket event handler
        ws.onEvent([this](AsyncWebSocket *serverPtr, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
            uint32_t clientId = client->id();
            switch (type) {
-               case WS_EVT_CONNECT: {
+                case WS_EVT_PONG:
+                  this->addPong(clientId);
+                  break;
+                case WS_EVT_CONNECT: {
                    // Ensure one socket per IP
                    IPAddress remoteIp = client->remoteIP();
+                   
                    for (auto &existingClient : serverPtr->getClients()) {
                        if (existingClient.id() != client->id() && existingClient.remoteIP() == client->remoteIP()) {
-                            existingClient.close(5003, "TOO MANY REQUESTS");
-                            removeClient(clientId);
+                            existingClient.close(3001, "TOO MANY REQUESTS");
                        }
                    }
-
                    // Add client (unverified yet)
                    if (!addClient(clientId)) {
-                        client->close(5007, "CLIENT CAPACITY FULL");
+                        client->close(1013, "CLIENT CAPACITY FULL");
                        return;
                    }
                } break;
@@ -349,8 +357,7 @@ public:
                            sessionId[15] = '\0';
                            // TODO: validate sessionId via Auth::isValid(sessionId)
                            if (!Auth::isValid(sessionId)) {
-                                client->close(4001, "UNAUTHORIZED");
-                                removeClient(clientId);
+                                client->close(1008, "UNAUTHORIZED");
                                return;
                            }
 
@@ -359,10 +366,7 @@ public:
                            markAsVerified(clientId, sessionId);
                            client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"verify\",\"status\":true}}");
                        } else {
-                            Serial.print("bad msg = ");
-                            Serial.println(clientId);
-                            client->close(4000, "BAD MESSAGE");
-                            removeClient(clientId);
+                            client->close(1008, "BAD MESSAGE");
                        }
                        return;
                    }
@@ -395,8 +399,7 @@ public:
                             client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"reason\":\"Channel Name not Valid\",\"status\":false}}");
                        }
                    } else {
-                        client->close(4000, "INVALID MESSAGE");
-                        removeClient(clientId);
+                        client->close(1008, "INVALID MESSAGE");
                    }
                } break;
 
@@ -549,7 +552,7 @@ public:
                 float lsl               = doc["lsl"] | 0.0f;
                 int datapointSize       = doc["datapointSize"] | 0;
                 int toolOffsetNumber    = doc["toolOffsetNumber"] | 0;
-                int offsetSize          = doc["offsetSize"] | 0;
+                float offsetSize          = doc["offsetSize"] | 0.0f;
 
                 bool success = AppCore::update(monitorCode, a2, d3, d4, usl, lsl, datapointSize, machineName, machineIP, toolOffsetNumber, offsetSize);
 
@@ -657,8 +660,9 @@ public:
                 request->send(404, "text/plain", "Role not found");
             }
         });
-
+        
         server.addHandler(&ws);
+        heartbeatTicker.attach_ms(5000, [this]() { this->customHeartbeat(); });
         server.begin();
     } 
 
@@ -685,7 +689,7 @@ public:
     //3) Disconnect Socket - To forcefully disconnect specific socket
     void disconnectSocket(const uint32_t clientId) {
         AsyncWebSocketClient* c = ws.client(clientId);
-        if (c) c->close(4001, "FORCEFULLY LOGGED OUT");
+        if (c) c->close(1000, "FORCEFULLY LOGGED OUT");
     }
 };
 

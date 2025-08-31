@@ -52,7 +52,7 @@ struct SPCSettings {
     char machineName[MAX_STRING_LENGTH]; 
     char machineIP[16];  
     int toolOffsetNumber;
-    int offsetSize; 
+    float offsetSize; 
 };
 
 //4) structs to store spc results
