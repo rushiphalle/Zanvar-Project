@@ -62,50 +62,61 @@ jobs:
           cp .pio/build/esp32dev/bootloader.bin build_output/ || true
           cp .pio/build/esp32dev/partitions.bin build_output/ || true
 
-      # 9) Create flash.py uploader
-      - name: Create flash.py
+      # 9) Create flash.py uploader with dynamic addresses from partition.csv
+      - name: Create flash.py with runtime addresses
         run: |
-          cat << 'EOF' > build_output/flash.py
+          # Extract offsets from partition.csv
+          FIRMWARE_ADDR=$(grep '^app0' partition.csv | awk '{print $4}')
+          LITTLEFS_ADDR=$(grep '^littlefs' partition.csv | awk '{print $4}')
+
+          # Set static addresses for bootloader and partition table
+          BOOTLOADER_ADDR="0x1000"
+          PARTITIONS_ADDR="0x8000"
+
+          cat << EOF > build_output/flash.py
           #!/usr/bin/env python3
-          import os
           import sys
           import subprocess
           import serial.tools.list_ports
 
-          # Function to auto-detect ESP32 port
+          CHIP = "esp32"
+
+          # --- Flash files with addresses ---
+          FLASH_FILES = {
+              "bootloader.bin": "$BOOTLOADER_ADDR",
+              "partitions.bin": "$PARTITIONS_ADDR",
+              "firmware.bin": "$FIRMWARE_ADDR",
+              "littlefs.bin": "$LITTLEFS_ADDR"
+          }
+
+          # --- Detect ESP32 port ---
           def detect_esp32_port():
               ports = list(serial.tools.list_ports.comports())
               for port in ports:
-                  if any(keyword in port.device.lower() for keyword in ["ttyusb", "ttyacm", "usb"]):
+                  if port.vid and port.pid:
+                      if (port.vid, port.pid) in [(0x10C4,0xEA60),(0x1A86,0x7523),(0x0403,0x6001)]:
+                          return port.device
+              for port in ports:
+                  if any(keyword in port.device.lower() for keyword in ["ttyusb","ttyacm","usb","com"]):
                       return port.device
               return None
 
-          # Detect port
           port = detect_esp32_port()
           if not port:
-              print("Error: ESP32 not detected. Please connect the board.")
+              print("Error: ESP32 not detected.")
               sys.exit(1)
-
           print(f"Detected ESP32 on port: {port}")
 
-          # Prepare flash command
-          cmd = [
-              "esptool.py",
-              "--chip", "esp32",
-              "--port", port,
-              "write_flash", "-z",
-              "0x1000", "bootloader.bin",
-              "0x8000", "partitions.bin",
-              "0x10000", "firmware.bin",
-              "0x310000", "littlefs.bin"
-          ]
+          # --- Flash all files ---
+          for bin_file, address in FLASH_FILES.items():
+              cmd = ["esptool.py","--chip",CHIP,"--port",port,"--baud","460800","write_flash","-z",address,bin_file]
+              print("Running:", " ".join(cmd))
+              subprocess.run(cmd, check=True)
 
-          print("Running:", " ".join(cmd))
-
-          # Execute flashing
-          subprocess.run(cmd, check=True)
+          print("Flashing completed successfully!")
           EOF
-          chmod +x build_output/flash.py
+
+              chmod +x build_output/flash.py
 
       # 10) Zip package
       - name: Package Release
