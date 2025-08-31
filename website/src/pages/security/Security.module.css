@@ -1,0 +1,250 @@
+.container{
+    width: 100vw;
+    padding: 0px 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 50px;
+    min-height: 100vh;
+}
+
+.wifibox{
+    width: 100%;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0px 0px 5px #213547;
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+.wifibox h2{
+    background-color: #213547;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 15px;
+}
+
+.wifibox form{
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.wifibox form div{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 5px;
+    width: 100%;
+}
+
+.wifibox label {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.wifibox input {
+    border: 0px;
+    box-shadow: 0px 0px 2px #213547;
+    padding: 10px 20px;
+    width: 100%;
+    font-size: 18px;
+    border-radius: 5px;
+}
+
+.wifibox button{
+    background-color: #213547;
+    width: 100%;
+    padding: 10px 20px;
+    text-align: center;
+    color: white;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.rolebox{
+    box-shadow: 0px 0px 5px #213547;
+    border-radius: 15px;
+    width: 100%;
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 250px;
+}
+
+.rolebox .roleBoxHeader{
+    background-color: #213547;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 15px;
+    width: 100%;
+}
+
+.rolebox .addbtn{
+    width: calc(100% - 40px);
+    background-color: #213547;
+    padding: 10px 20px;
+    color: white;
+    font-size: 18px;
+    margin-top: auto;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.roleContainer{
+    width: calc(100% - 40px);
+    background-color: #4c677e;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: max-content;
+    border-radius: 10px;
+}
+
+.roleContainer div{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%
+}
+
+.roleContainer h3{
+    color: white;
+    font-size: 18px;
+    padding: 10px 20px;
+    max-width: calc(100% - 200px);
+}
+
+.roleContainer button{
+    border-radius: 10px;
+    color: white;
+    font-weight: bolder;
+    font-size: 32px;
+    border: 0px;
+    padding: 0px 20px;
+}
+
+.roleContainer button:nth-child(1){
+    margin-right: -10px;
+    /* padding-right: 25px; */
+    background-color: lime;
+}
+
+.roleContainer button:nth-child(2){
+    background-color: red;
+}
+
+.formContainer {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  background: #f5f8fa;
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  z-index: 1001;
+  background-color: #1c2d3c4b;
+  height: 100vh;
+  width: 100vw;
+  overflow: scroll;
+}
+
+.form {
+  background: #ffffff;
+  padding: 20px 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(38, 61, 81, 0.15);
+  width: 100%;
+  max-width: 420px;
+  height: max-content;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #263d51;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.field {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.field label {
+  font-weight: 500;
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #263d51;
+}
+
+.field input {
+  padding: 10px 20px;
+  border: 1px solid #cdd6df;
+  border-radius: 8px;
+  outline: none;
+  font-size: 18px;
+  transition: border 0.2s ease;
+}
+
+.field input:focus {
+  border-color: #263d51;
+  box-shadow: 0 0 4px rgba(38, 61, 81, 0.3);
+}
+
+.permissions {
+  margin: 15px 0;
+}
+
+.permissions h4 {
+  margin-bottom: 10px;
+  color: #263d51;
+  font-size: 16px;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.6rem;
+  cursor: pointer;
+  font-size: 16px;
+  color: #3a4d5f;
+  padding: 0px 20px;
+}
+
+.checkbox input {
+  margin-right: 0.6rem;
+  accent-color: #263d51;
+  width: 16px;
+  height: 16px;
+}
+
+.button {
+  background: #263d51;
+  color: #fff;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 600;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.button:hover {
+  background: #1c2d3c;
+}

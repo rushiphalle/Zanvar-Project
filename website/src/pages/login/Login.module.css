@@ -1,0 +1,71 @@
+.container{
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.curve{
+    width: 100vw;
+    height: 45vh;
+    background-color: orangered;
+    border-bottom-right-radius: 25%;
+    top: 0px;
+    left: 0px;
+    z-index: -1;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.logo{
+    width: 130px;
+    border: 15px solid white;
+    border-radius: 10px;
+}
+
+.curve h1{
+    color: white;
+    text-align: left;
+    position: absolute;
+    bottom: 20px;
+    left: 50px;
+    font-size: 30px;
+}
+
+.form{
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: center;
+    padding: 50px;
+    width: 90vw;
+}
+
+.form .inputHolder{
+    padding: 5px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid gray;
+}
+
+.form input{
+    width: 100%;
+    border: 0px;
+    border-radius: 3px;
+    padding: 10px 20px;
+    font-size: 18px;
+}
+
+.form button{
+    background-color: orangered;
+    border: 0px;
+    padding: 10px 25px;
+    color: white;
+    border-radius: 0px;
+    width: 100%;
+}

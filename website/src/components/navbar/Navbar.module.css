@@ -1,0 +1,23 @@
+.navbar{
+    box-sizing: border-box;
+    width: 100vw;
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    background-color: #1b2547;
+    border-radius: 15px 15px 0px 0px;
+    z-index: 1000;
+}
+.navbar ul{
+    margin: 0px;
+    padding: 10px;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    font-weight: bold;
+}
+
+.navbar span{
+    color: white;
+}
