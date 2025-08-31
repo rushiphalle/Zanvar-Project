@@ -1,0 +1,21 @@
+.container{
+    width: calc(100vw - 20px);
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-evenly;
+    background-color: #030716;
+    border: 2px solid #abb2ca;
+    border-radius: 15px;
+    gap: 10px;
+    color: white;
+}
+
+.monitorName{
+    background-color: #030716;
+    border: 2px solid #abb2ca;
+    width: 100%;
+    border-radius: 13px;
+    text-align: center;
+}

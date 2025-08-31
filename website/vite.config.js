@@ -9,8 +9,13 @@ export default defineConfig({
       '/api': {
         target: 'http://192.168.4.1', // your backend server
         changeOrigin: true,              // changes the origin header to match the target
+        rewrite: (path) => path.replace(/^\/api/, '') // optional, if backend doesn't expect /api prefix
+      },      
+      'ws://192.168.4.1/subscribe': {
+        target: 'ws://192.168.4.1/subscribe', // your backend server
+        changeOrigin: true,              // changes the origin header to match the target
         // rewrite: (path) => path.replace(/^\/api/, '') // optional, if backend doesn't expect /api prefix
       }
     }
-  }
+    }
 })

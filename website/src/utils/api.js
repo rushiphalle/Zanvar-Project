@@ -1,55 +1,9 @@
-/**
- * @async @function login
- * @param {string} username - The username to authenticate.
- * @param {string} password - The password for the given username.
- * ***
- * @returns {Promise<Object>} Resolves with an object in the format:
- * Successful login:
- * ```json
- * {
- *   "code": 200,
- *   "username": "admin",
- *   "userAlias": "admin",
- *   "allowedTo": ["SETTING", "MONITOR", "SECURITY"]
- * }
- * ```
- *
- * Failed login:
- * ```json
- * {
- *   "code": 401,
- *   "reason": "Invalid Username Or Password"
- * }
- * ```
- *
- * Missing parameters:
- * ```json
- * {
- *   "code": 400,
- *   "reason": "Missing Username Or Password"
- * }
- * ```
- *
- * Server Overload:
- * ```json
- * {
- *   "code": 503,
- *   "reason": "Server Limit Reached For Login"
- * }
- * ```
- *
- * Network/unexpected errors:
- * ```json
- * {
- *   "code": 500,
- *   "reason": "Unexpected Error: ..."
- * }
- * ```
- */
+const API_BASE = import.meta.env.VITE_API_BASE;
+
 export async function login(username, password) {
   try {
     const response = await fetch(
-      `/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
+      `${API_BASE}login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`,
       {
         method: "GET",
         credentials: "include"
@@ -65,13 +19,13 @@ export async function login(username, password) {
           allowedTo: [...data.allowedTo],
         };
       case 400: 
-        text = await response.text();
+        var text =  await response.text();
         return { code: 400, reason: text };
       case 401:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 401, reason: text };
       case 503:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 503, reason: text };
       default:
         return {
@@ -87,28 +41,9 @@ export async function login(username, password) {
   }
 }
 
-/**
- * Logs out the currently authenticated user by calling the `/logout` endpoint.
- * 
- * The request includes cookies (`credentials: "include"`) to ensure
- * the session is properly invalidated server-side.
- * 
- * @async
- * @function logout
- * @returns {Promise<{code: number, reason?: string}>}
- *   An object containing:
- *   - `code` {number} - The HTTP status code (200, 400, 401, 500).
- *   - `reason` {string} [optional] - A description for error codes.
- * 
- * Possible return cases:
- * - `{ code: 200 }` → Logout successful.
- * - `{ code: 401, reason: "Unauthenticated - You are not logged in" }`
- * - `{ code: 400, reason: "<server provided reason>" }`
- * - `{ code: 500, reason: "Unexpected Error..." }`
- */
 export async function logout() {
   try {
-    const response = await fetch(`/logout`, {
+    const response = await fetch(`${API_BASE}logout`, {
       method: "GET",
       credentials: "include"
     });
@@ -118,10 +53,10 @@ export async function logout() {
         const data = await response.json();
         return { code: 200, ...data};
       case 400:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 400, reason: text };
       case 401: 
-        text = await response.text();
+        var text =  await response.text();
         return { code: 401, reason: text };
       default:
         return {
@@ -139,7 +74,7 @@ export async function logout() {
 
 export async function getSettings() {
   try {
-    const response = await fetch(`/getSettings`, {
+    const response = await fetch(`${API_BASE}getSettings`, {
       method: "GET",
       credentials: "include"
     });
@@ -149,13 +84,13 @@ export async function getSettings() {
         const data = await response.json();
         return {  code: 200, settings: data };
       case 400: 
-        text = await response.text();
+        var text =  await response.text();
         return { code: 400, reason: text };
       case 401:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 401, reason: text };
       case 403:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 403, reason: text };
       default:
         return {
@@ -173,7 +108,7 @@ export async function getSettings() {
 
 export async function getSecurityCreds() {
   try {
-    const response = await fetch(`/getSecurityCredintials`, {
+    const response = await fetch(`${API_BASE}getSecurityCredintials`, {
       method: "GET",
       credentials: "include"
     });
@@ -183,13 +118,13 @@ export async function getSecurityCreds() {
         const data = await response.json();
         return { code: 200, creds: data };
       case 400: 
-        text = await response.text();
+        var text =  await response.text();
         return { code: 400, reason: text };
       case 401:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 401, reason: text };
       case 403:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 403, reason: text };
       default:
         return {
@@ -207,7 +142,7 @@ export async function getSecurityCreds() {
 
 export async function update(monitorCode, USL, LSL, D3, D4, A2, bufferSize, machineName, machineIP, toolOffsetNum, offsetSize) {
   try {
-    const response = await fetch("/update", {
+    const response = await fetch(`${API_BASE}update`, {
       method: "POST",
       credentials: "include",  
       headers: {
@@ -233,16 +168,16 @@ export async function update(monitorCode, USL, LSL, D3, D4, A2, bufferSize, mach
         const data = await response.json();
         return { code: 200, ...data};
       case 400: 
-        text = await response.text();
+        var text =  await response.text();
         return { code: 400, reason: text };
       case 401:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 401, reason: text };
       case 403:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 403, reason: text };
       case 507:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 507, reason: text };
       default:
         return {
@@ -260,7 +195,7 @@ export async function update(monitorCode, USL, LSL, D3, D4, A2, bufferSize, mach
 
 export async function deleteM(monitorCode) {
     try {
-        const response = await fetch(`/delete?monitorCode=${encodeURIComponent(monitorCode)}`, {
+        const response = await fetch(`${API_BASE}delete?monitorCode=${encodeURIComponent(monitorCode)}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -273,16 +208,16 @@ export async function deleteM(monitorCode) {
               const data = await response.json();
               return { code: 200, ...data};
             case 400: 
-              text = await response.text();
+              var text =  await response.text();
               return { code: 400, reason: text };
             case 401:
-              text = await response.text();
+              var text =  await response.text();
               return { code: 401, reason: text };
             case 403:
-              text = await response.text();
+              var text =  await response.text();
               return { code: 403, reason: text };
             case 404:
-              text = await response.text();
+              var text =  await response.text();
               return { code: 404, reason: text };
             default:
               return {
@@ -300,7 +235,7 @@ export async function deleteM(monitorCode) {
 
 export async function reset(monitorCode) {
     try {
-        const response = await fetch(`/reset?monitorCode=${encodeURIComponent(monitorCode)}`, {
+        const response = await fetch(`${API_BASE}reset?monitorCode=${encodeURIComponent(monitorCode)}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -337,7 +272,7 @@ export async function reset(monitorCode) {
 
 export async function updateWifi(ssid, password) {
   try {
-    const response = await fetch("/updateWifi", {
+    const response = await fetch(`${API_BASE}updateWifi`, {
       method: "POST",
       credentials: "include",  
       headers: {
@@ -353,13 +288,13 @@ export async function updateWifi(ssid, password) {
         const data = await response.json();
         return { code: 200, ...data};
       case 400: 
-        text = await response.text();
+        var text =  await response.text();
         return { code: 400, reason: text };
       case 401:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 401, reason: text };
       case 403:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 403, reason: text };
       default:
         return {
@@ -377,7 +312,7 @@ export async function updateWifi(ssid, password) {
 
 export async function updateRole(username, password, userAlias, allowedTo) {
   try {
-    const response = await fetch("/updateRole", {
+    const response = await fetch(`${API_BASE}updateRole`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -392,16 +327,16 @@ export async function updateRole(username, password, userAlias, allowedTo) {
         const data = await response.json();
         return { code: 200, ...data};
       case 400: 
-        text = await response.text();
+        var text =  await response.text();
         return { code: 400, reason: text };
       case 401:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 401, reason: text };
       case 403:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 403, reason: text };
       case 507:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 507, reason: text };
 
       default:
@@ -414,7 +349,7 @@ export async function updateRole(username, password, userAlias, allowedTo) {
 
 export async function deleteRole(username) {
   try {
-    const response = await fetch(`/deleteRole?username=${encodeURIComponent(username)}`, {
+    const response = await fetch(`${API_BASE}deleteRole?username=${encodeURIComponent(username)}`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -427,16 +362,16 @@ export async function deleteRole(username) {
         const data = await response.json();
         return { code: 200, ...data };
       case 400:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 400, reason: text };
       case 401:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 401, reason: text };
       case 403:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 403, reason: text };
       case 404:
-        text = await response.text();
+        var text =  await response.text();
         return { code: 404, reason: text };
 
       default:
@@ -447,46 +382,69 @@ export async function deleteRole(username) {
   }
 }
 
-
-
 export async function subscribe(callback) {
+  return new Promise((resolve, reject) => {
     const socket = new WebSocket("ws://192.168.4.1/subscribe");
+
     socket.addEventListener("open", () => {
       const allCookies = document.cookie;
       const match = allCookies.match(/session_id=([A-Za-z0-9]{15})/);
       if (match) {
         const sessionId = match[1];
         socket.send("VERIFY-" + sessionId);
-      }else{
-          return {
-              code: 401,
-              reason: 'Session Expired'
-          }
+      } else {
+        reject({
+          code: 4001,
+          reason: "Session Expired",
+        });
       }
     });
+
     socket.addEventListener("message", (event) => {
       const data = JSON.parse(event.data);
-      if(data.type =="msg"){
-        if(!data.data.status){
-            return {
-                code: 403,
-                reason: 'Not Allowed To Perform This Operation ' + data.reason
-            }
-        }else{
-          if(data.data.status && data.data.subject == 'verify'){
+      console.log(data);
+
+      if (data.type == "msg") {
+        if (!data.data.status) {
+          reject({
+            code: 4003,
+            reason: "Not Allowed To Perform This Operation " + data.reason,
+          });
+        } else {
+          if (data.data.subject === "verify") {
             socket.send("SUB-MONITOR");
-          }else{
-              return {
-                code: 200,
-                unsubscribe: ()=>{socket.send("UNS-MONITOR");}
-              }
+          } else {
+            resolve({
+              code: 2000,
+              unsubscribe: () => {
+                console.log("Called");
+                socket.send("UNS-MONITOR");
+                socket.close();
+              },
+            });
           }
         }
-      }else{
+      } else {
         callback(data.data);
       }
     });
-    socket.addEventListener("close", () => {
-      console.log("WebSocket connection closed");
+
+    socket.addEventListener("close", (e) => {
+      console.log("WebSocket connection closed", e);
+      if (e.code !== 3001 && e.code != 4000) {
+        reject({
+          code: e.code, //1013, 1008, 1000
+          reason: e.reason,
+        });
+      }
     });
+
+    socket.addEventListener("error", (err) => {
+      reject({
+        code: 5000,
+        reason: "WebSocket error",
+        error: err,
+      });
+    });
+  });
 }
