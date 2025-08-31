@@ -413,7 +413,7 @@ public:
 
         // Handle Api endpoints
         // 1) GET /login?username=admin&password=admin123
-        server.on("/login", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        server.on("/api/login", HTTP_GET, [this](AsyncWebServerRequest *request) {
             if (!request->hasParam("username") || !request->hasParam("password")) {
                 request->send(400, "text/plain", "Missing Username Or Password");
                 return;
@@ -454,7 +454,7 @@ public:
         });
 
         //2) GET /logout
-        server.on("/logout", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        server.on("/api/logout", HTTP_GET, [this](AsyncWebServerRequest *request) {
             char sessionId[16] = {0};
             if (!getCookie(request, sessionId, sizeof(sessionId))) {
                 request->send(400, "text/plain", "Session cookie not found");
@@ -476,7 +476,7 @@ public:
         });
 
         //3) GET getSettings
-        server.on("/getSettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        server.on("/api/getSettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SETTING"))   return;
             char jsonBuf[1500];
             AppCore::getSettings(jsonBuf, sizeof(jsonBuf));
@@ -485,7 +485,7 @@ public:
 
 
         //4) GET getSecurityCredintials
-        server.on("/getSecurityCredintials", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        server.on("/api/getSecurityCredintials", HTTP_GET, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SECURITY"))   return;
             char jsonBuf[1500]; // Adjust size to fit max expected JSON
             AppCore::getSecurityCreds(jsonBuf, sizeof(jsonBuf));
@@ -493,7 +493,7 @@ public:
         });
 
         //5) POST /reset?monitorCode=700
-        server.on("/reset", HTTP_POST, [this](AsyncWebServerRequest *request) {
+        server.on("/api/reset", HTTP_POST, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SETTING"))   return;
             const AsyncWebParameter *p = request->getParam("monitorCode");
             if (!p) {
@@ -508,7 +508,7 @@ public:
         });
 
         //6) POST /delete?monitorCode=700
-        server.on("/delete", HTTP_POST, [this](AsyncWebServerRequest *request) {
+        server.on("/api/delete", HTTP_POST, [this](AsyncWebServerRequest *request) {
            if(!isAuthenticated(request, "SETTING"))   return;
             const AsyncWebParameter *p = request->getParam("monitorCode");
             if (!p) {
@@ -527,7 +527,7 @@ public:
         });
 
         //6) POST /update { "a2": 1.50, "d3": 0, "d4": 3.50, "usl": 26.00, "lsl": 25.95, "datapointSize": 30, "machineName": "machineName", "machineIP": "machineIP", "toolOffsetNumber": 30, "offsetSize": 20, "monitorCode":"700" }
-        server.on("/update", HTTP_POST, [this](AsyncWebServerRequest *request) {}, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+        server.on("/api/update", HTTP_POST, [this](AsyncWebServerRequest *request) {}, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SETTING"))   return;
 
                 if (len >= 512) {
@@ -565,11 +565,7 @@ public:
         );
 
         //7) POST /updateWifi {"ssid": "newSSID", "password":"newpassword"}
-        server.on("/updateWifi", HTTP_POST,
-            [this](AsyncWebServerRequest *request) {
-            },
-            nullptr,
-            [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+        server.on("/api/updateWifi", HTTP_POST, [this](AsyncWebServerRequest *request) { }, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
                 if (len >= 128) {
@@ -600,11 +596,7 @@ public:
         );
 
         //7) POST /updateRole {"username": "username", "password":"newpassword", "userAlias":"newUserAlias", "allowedTo":["SETTING", "MONITOR"...]}
-        server.on("/updateRole", HTTP_POST,
-            [this](AsyncWebServerRequest *request) {
-            },
-            nullptr,
-            [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+        server.on("/api/updateRole", HTTP_POST, [this](AsyncWebServerRequest *request) { }, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
                 if (len >= 256) {
@@ -644,7 +636,7 @@ public:
         );
 
         //10)POST /deleteRole?username=xyz
-        server.on("/deleteRole", HTTP_POST, [this](AsyncWebServerRequest *request) {
+        server.on("/api/deleteRole", HTTP_POST, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SECURITY"))   return;
             const AsyncWebParameter *p = request->getParam("username");
             if (!p) {
@@ -659,6 +651,11 @@ public:
             } else {
                 request->send(404, "text/plain", "Role not found");
             }
+        });
+
+        //Default route handeling
+        server.onNotFound([](AsyncWebServerRequest *request) {
+            request->send(LittleFS, "/dist/index.html", "text/html");
         });
         
         server.addHandler(&ws);
