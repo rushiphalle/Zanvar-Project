@@ -662,7 +662,9 @@ public:
         });
         
         server.addHandler(&ws);
-        heartbeatTicker.attach_ms(5000, [this]() { this->customHeartbeat(); });
+        heartbeatTicker.attach_ms(5000, []() {
+            MyWebserver::getInstance().customHeartbeat();
+        });
         server.begin();
     } 
 
