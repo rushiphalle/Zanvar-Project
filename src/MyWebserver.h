@@ -171,6 +171,7 @@ private:
             for(int i=0; i<MAX_SOCKET; i++){
                 if(!clientList[i].isVerified){
                     index = i;
+                    //break this user
                     break;
                 }
             }
@@ -309,32 +310,26 @@ public:
            uint32_t clientId = client->id();
            switch (type) {
                case WS_EVT_CONNECT: {
-                Serial.print("Socket connected = ");
-                   Serial.println(clientId);
                    // Ensure one socket per IP
                    IPAddress remoteIp = client->remoteIP();
                    for (auto &existingClient : serverPtr->getClients()) {
                        if (existingClient.id() != client->id() && existingClient.remoteIP() == client->remoteIP()) {
-                           existingClient.close(5003, "TOO MANY REQUESTS");
-                        //    return;
+                            existingClient.close(5003, "TOO MANY REQUESTS");
+                            removeClient(clientId);
                        }
                    }
 
                    // Add client (unverified yet)
                    if (!addClient(clientId)) {
-                       client->close(5004, "CLIENT CAPACITY FULL");
+                        client->close(5007, "CLIENT CAPACITY FULL");
                        return;
                    }
                } break;
 
                case WS_EVT_DISCONNECT: {
-                Serial.print("Socket Disconnected = ");
-                   Serial.println(clientId);
                    char sessionId[16];
                    if (isVerified(clientId, sessionId)) {
                        Auth::informSocket(sessionId, clientId, false);
-                       Serial.print("Socket Disconnected - verified = ");
-                   Serial.println(sessionId);
                    }
                    removeClient(clientId);
                    removeSubscriber(clientId, "*");
@@ -345,33 +340,29 @@ public:
                    size_t copyLen = (len < sizeof(msg) - 1) ? len : sizeof(msg) - 1;
                    memcpy(msg, data, copyLen);
                    msg[copyLen] = '\0';
-                   Serial.print("msg received = ");
-                   Serial.println(msg);
 
                    // If not verified yet, expect VERIFY-SESSIONID
                    char sessionId[16];
                    if (!isVerified(clientId, sessionId)) {
-                    Serial.print("its unverified = ");
-                    Serial.println(msg);
                        if (strncmp(msg, "VERIFY-", 7) == 0 && strlen(msg + 7) == 15) {
                            strncpy(sessionId, msg + 7, 15);
                            sessionId[15] = '\0';
                            // TODO: validate sessionId via Auth::isValid(sessionId)
                            if (!Auth::isValid(sessionId)) {
-                               client->close(4003, "UNAUTHORIZED");
+                                client->close(4001, "UNAUTHORIZED");
+                                removeClient(clientId);
                                return;
                            }
 
                            Auth::informSocket(sessionId, clientId, true);
                            
                            markAsVerified(clientId, sessionId);
-Serial.print("authenticated = ");
-                   Serial.println(clientId);
                            client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"verify\",\"status\":true}}");
                        } else {
-                        Serial.print("bad msg = ");
-                   Serial.println(clientId);
-                           client->close(4000, "BAD MESSAGE");
+                            Serial.print("bad msg = ");
+                            Serial.println(clientId);
+                            client->close(4000, "BAD MESSAGE");
+                            removeClient(clientId);
                        }
                        return;
                    }
@@ -404,7 +395,8 @@ Serial.print("authenticated = ");
                             client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"reason\":\"Channel Name not Valid\",\"status\":false}}");
                        }
                    } else {
-                       client->close(4005, "INVALID MESSAGE");
+                        client->close(4000, "INVALID MESSAGE");
+                        removeClient(clientId);
                    }
                } break;
 
@@ -693,7 +685,7 @@ Serial.print("authenticated = ");
     //3) Disconnect Socket - To forcefully disconnect specific socket
     void disconnectSocket(const uint32_t clientId) {
         AsyncWebSocketClient* c = ws.client(clientId);
-        if (c) c->close(5000, "FORCEFULLY LOGGED OUT");
+        if (c) c->close(4001, "FORCEFULLY LOGGED OUT");
     }
 };
 
