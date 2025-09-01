@@ -13,13 +13,13 @@ private:
     char buffer[BUFFER_SIZE];
     int bufferIndex = 0;
     bool capturing = false;
+    bool isLastMod = false;
 
     // Private constructor (singleton)
     MyInputHandler() {}
     MyInputHandler(const MyInputHandler&) = delete;
     MyInputHandler& operator=(const MyInputHandler&) = delete;
 
-    // Collect characters until a complete block is received
     void parseBlock(char c) {
         if (c == '%') {
             if (!capturing) {
@@ -28,25 +28,28 @@ private:
                 buffer[bufferIndex++] = c;
                 capturing = true;
             } else {
-                // End block
-                buffer[bufferIndex++] = c;
-                buffer[bufferIndex] = '\0'; // terminate string
-
-                parseValue(buffer); // send complete block
-
-                // Reset for next block
-                capturing = false;
+                // Already capturing: this % might be end of block
+                if (bufferIndex > 1) {
+                    // We have content, send the block
+                    buffer[bufferIndex++] = c;
+                    buffer[bufferIndex] = '\0';
+                    parseValue(buffer);
+                }
+                // Reset for next block (even if previous was empty)
                 bufferIndex = 0;
+                buffer[bufferIndex++] = c;
+                capturing = true;
             }
         } else if (capturing) {
             if (bufferIndex < BUFFER_SIZE - 1) {
                 buffer[bufferIndex++] = c;
             } else {
-                // Overflow -> reset
+                // Overflow, reset
                 bufferIndex = 0;
                 capturing = false;
             }
         }
+        // ignore characters outside block
     }
 
     // Parse completed block, extract key-value pairs
