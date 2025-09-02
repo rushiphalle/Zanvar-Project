@@ -381,6 +381,7 @@ public:
                            bool success = addSubscriber(clientId, channel);
                            if (success) {
                                client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"status\":true}}");
+                               AppCore::refreshRecords();
                            } else {
                                client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"status\":false}}");
                            }
