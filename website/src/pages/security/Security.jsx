@@ -162,9 +162,9 @@ export default function Security() {
     const handleUpdateWIFI = async(e) => {
         e.preventDefault();
         alert("After Updating Wifi credintials you qill be disconnected from server, plase note the new credintials as its irevertable");
-        await logout();
         setUser(null);
         let ack = await updateWifi(ssid, password);
+        await logout();
         if(ack.code == 200){
           alert("WIFI Data Modified Successfully");
           refresh();
@@ -203,11 +203,11 @@ export default function Security() {
                 <form onSubmit={(e) => handleUpdateWIFI(e)}>
                     <div>
                         <label htmlFor="">Wifi SSID</label>
-                        <input type="text" value={ssid} placeholder='Enter ssid' required onChange={(e) => setSsid(e.target.value)} />
+                        <input type="text" value={ssid} placeholder='Enter ssid' required onChange={(e) => setSsid(e.target.value)} minLength={8}/>
                     </div>
                     <div>
                         <label htmlFor="">Wifi Password</label>
-                        <input type="text" value={password} placeholder='Enter Password ' required onChange={(e) => setPasswrod(e.target.value)} />
+                        <input type="text" value={password} placeholder='Enter Password ' required onChange={(e) => setPasswrod(e.target.value)} minLength={8}/>
                     </div>
                     <button type="submit">Update Credintials</button>
                 </form>

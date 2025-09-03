@@ -65,6 +65,7 @@ export default function Monitor() {
 
   let ack;
   const sub = async () => {
+    setData([]);
     setSpinner("Subscribing To Monitor");
     try {
       ack = await subscribe((d) => {

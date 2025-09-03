@@ -8,11 +8,12 @@
 #include <cstring>   // strcmp, strncpy
 
 #define MAX_RECORDS 10   // how many monitor codes we can handle
+#define MAX_VALUES 30    // max capacity for fixed array
 
 // Record for each monitorCode
 struct MonitorRecord {
-    char monitorCode[10];   // unique key
-    float values[30];       // circular buffer for SPC data
+    char monitorCode[32];   // unique key
+    float values[MAX_VALUES];// circular buffer for SPC data and fixed array
     int size;               // number of valid elements
     bool active;            // marks if slot is used
 };
@@ -62,16 +63,51 @@ public:
         static MySPCHandler instance;
         return instance;
     }
-
+ 
      // Reset all stored values for a monitor
     void reset(const char* monitorCode){
         //clean the array of float associated with this monitor code
         int idx = findRecord(monitorCode);
         if (idx >= 0) {
             records[idx].size = 0;
-            for (int j = 0; j < 30; j++) {
+            for (int j = 0; j < MAX_VALUES; j++) {
                 records[idx].values[j] = 0.0f;
             }
+        }
+    }
+
+    void refreshRecords(){
+        for (int i = 0; i < MAX_RECORDS; i++) {
+            if (!records[i].active) continue;  // Skip inactive slots
+
+            MonitorRecord &rec = records[i];
+
+            // Fetch SPC settings for this monitor
+            SPCSettings setting;
+            if (!spcDb.get(rec.monitorCode, &setting)) {
+                Serial.print("SPC settings not found for monitorCode: ");
+                Serial.println(rec.monitorCode);
+                continue;
+            }
+
+            int limit = setting.datapointSize;
+            if (limit <= 0) continue;
+            if (limit > MAX_VALUES) limit = MAX_VALUES; // prevent overflow
+
+            // Trim if record has more values than limit
+            if (rec.size > limit) {
+                int shift = rec.size - limit;
+                for (int j = 0; j < limit; j++) {
+                    rec.values[j] = rec.values[j + shift];
+                }
+                rec.size = limit;
+            }
+
+            // Perform SPC calculation only on rec.size values (<= limit)
+            SPCResult result = calculate(setting, rec.values, rec.size);
+
+            // Send result to handler
+            handleResult(rec.monitorCode, rec.values, rec.size, setting, result);
         }
     }
 
@@ -100,21 +136,26 @@ public:
 
         MonitorRecord& rec = records[idx];
 
-        // If full, shift left
-        if (rec.size >= 30) {
-            for (int i = 1; i < 30; i++) {
-                rec.values[i - 1] = rec.values[i];
-            }
-            rec.values[29] = parameter;
-        } else {
-            rec.values[rec.size++] = parameter;
-        }
-
         // Get SPC settings from DB
         SPCSettings setting;
         if (!spcDb.get(monitorCode, &setting)) {
             Serial.println("SPC settings not found for monitorCode!");
             return;
+        }
+
+        int limit = setting.datapointSize;
+        if (limit <= 0) limit = MAX_VALUES;
+        if (limit > MAX_VALUES) limit = MAX_VALUES;
+
+        // Insert value respecting datapointSize
+        if (rec.size >= limit) {
+            for (int i = 1; i < limit; i++) {
+                rec.values[i - 1] = rec.values[i];
+            }
+            rec.values[limit - 1] = parameter;
+            rec.size = limit;
+        } else {
+            rec.values[rec.size++] = parameter;
         }
                 
         // Run SPC calculation

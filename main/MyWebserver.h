@@ -303,6 +303,7 @@ public:
         }
 
         // Start AP
+//        Serial.println("DEBUG 3");
         WiFi.softAP(ssid, password);
         delay(1000);
         ip = WiFi.softAPIP();
@@ -381,6 +382,7 @@ public:
                            bool success = addSubscriber(clientId, channel);
                            if (success) {
                                client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"status\":true}}");
+                              AppCore::refreshRecords();
                            } else {
                                client->text("{\"type\":\"msg\",\"data\":{\"subject\":\"suback\",\"status\":false}}");
                            }
