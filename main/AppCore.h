@@ -18,7 +18,6 @@ namespace AppCore {
     }
     inline void refreshRecords(){
      spcHandler.refreshRecords();
-    
     }
     inline bool update(const char* monitorCode, float a2, float d3, float d4, float usl, float lsl, int datapointSize, const char* machineName, const char* machineIP, int toolOffsetNumber, float offsetSize){
         auto keys = spcDb.getKeys();
