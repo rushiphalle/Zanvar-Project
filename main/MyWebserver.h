@@ -480,7 +480,7 @@ public:
         //3) GET getSettings
         server.on("/api/getSettings", HTTP_GET, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SETTING"))   return;
-            char jsonBuf[1500];
+            char jsonBuf[3072];
             AppCore::getSettings(jsonBuf, sizeof(jsonBuf));
             request->send(200, "application/json", jsonBuf);
         });       
