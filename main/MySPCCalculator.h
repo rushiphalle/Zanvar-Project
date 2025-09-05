@@ -63,9 +63,6 @@ inline SPCResult calculate(SPCSettings setting, float values[], int elementsInAr
         result.cpk = 0;
     }
 
-    // --- 6. Simple Drift Check ---
-    result.isDrifting = (result.cpk < 1.0f);
-
     return result;
 }
 

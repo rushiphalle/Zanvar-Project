@@ -42,8 +42,6 @@ void streamMonitor(const char* monitorCode, float values[30], int elementsInArra
 
 
 void handleResult(const char* monitorCode, float values[30], int elementsInArray, SPCSettings setting, SPCResult result) {
-    if (result.isDrifting) {
-        CNCSignal::handleDrift();
-    }
+    CNCSignal::handleDrift(monitorCode, values, elementsInArray, setting, result);
     streamMonitor(monitorCode, values, elementsInArray, setting, result);
 }

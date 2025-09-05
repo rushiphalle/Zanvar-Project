@@ -74,7 +74,6 @@ struct SPCResult {
     float cp;
     float cpk;
     DynamicMRArray mrArray;
-    bool isDrifting;
 };
 
 #endif // STDSTRUCTS_H
