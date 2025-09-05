@@ -6,6 +6,7 @@
 #include <cstdio>
 #include <cstring>
 #include "MySPCHandler.h"
+#include <WiFi.h>
 
 #define MAX_SETTINGS 10
 #define MAX_JSON_SIZE 2048
@@ -72,6 +73,20 @@ namespace AppCore {
 
         generalDb.set("SSID", ssidObj);
         generalDb.set("PASSWORD", passwordObj);
+    }
+
+    inline void updateSTA(const char* ssid, const char* password) {
+        FixedString32 ssidObj;
+        FixedString32 passwordObj;
+
+        strncpy(ssidObj.value, ssid, sizeof(ssidObj.value));
+        ssidObj.value[sizeof(ssidObj.value) - 1] = '\0';
+
+        strncpy(passwordObj.value, password, sizeof(passwordObj.value));
+        passwordObj.value[sizeof(passwordObj.value) - 1] = '\0';
+
+        generalDb.set("STA_SSID", ssidObj);
+        generalDb.set("STA_PASSWORD", passwordObj);
     }
 
     inline void getSettings(char* outBuffer, size_t bufferSize) {
@@ -147,6 +162,43 @@ namespace AppCore {
 
         char ssid[32] = {0};
         char password[32] = {0};
+        char sta_ssid[32] = {0};
+        char sta_password[32] = {0};
+        char status[32];
+        bool isConnected;
+
+        switch (WiFi.status()) {
+            case WL_IDLE_STATUS:    
+                strcpy(status, "Connecting");
+                isConnected = false;
+                break;
+
+            case WL_CONNECTED:      
+                strcpy(status, "Connected");
+                isConnected = true;
+                break;
+
+            case WL_NO_SSID_AVAIL:  
+                strcpy(status, "SSID not available");
+                isConnected = false;
+                break;
+
+            case WL_CONNECT_FAILED: 
+                strcpy(status, "Wrong password");
+                isConnected = false;
+                break;
+
+            case WL_DISCONNECTED:   
+                strcpy(status, "Disconnected");
+                isConnected = false;
+                break;
+
+            default:                
+                strcpy(status, "Unknown");
+                isConnected = false;
+                break;
+        }
+
 
         FixedString32 ssidObj;
         FixedString32 passwordObj;
@@ -163,6 +215,18 @@ namespace AppCore {
             std::strncpy(password, passwordObj.value, sizeof(password) - 1);
         }
 
+        if (!generalDb.get("STA_SSID", &ssidObj)) {
+            std::strncpy(sta_ssid, "ZANVAR_IND", sizeof(sta_ssid) - 1);
+        } else {
+            std::strncpy(sta_ssid, ssidObj.value, sizeof(sta_ssid) - 1);
+        }
+
+        if (!generalDb.get("STA_PASSWORD", &passwordObj)) {
+            std::strncpy(sta_password, "12345678", sizeof(sta_password) - 1);
+        } else {
+            std::strncpy(sta_password, passwordObj.value, sizeof(sta_password) - 1);
+        }
+
         size_t offset = 0;
         int n = std::snprintf(outBuffer + offset, bufferSize - offset,
             "{\n"
@@ -170,8 +234,14 @@ namespace AppCore {
             "    \"ssid\": \"%s\",\n"
             "    \"password\": \"%s\"\n"
             "  },\n"
+            "  \"sta\": {\n"
+            "    \"ssid\": \"%s\",\n"
+            "    \"password\": \"%s\",\n"
+            "    \"isConnected\": \"%s\",\n"
+            "    \"message\": \"%s\",\n"
+            "  },\n"
             "  \"users\": [\n",
-            ssid, password
+            ssid, password, sta_ssid, sta_password, isConnected ? "true":"false", status
         );
         if (n < 0) return;
         offset += (size_t)n;

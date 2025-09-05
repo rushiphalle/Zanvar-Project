@@ -52,6 +52,8 @@ private:
     Ticker heartbeatTicker;
     char ssid[STRING_LENGTH];
     char password[STRING_LENGTH];
+    char sta_ssid[STRING_LENGTH];
+    char sta_password[STRING_LENGTH];
 
     struct Subscriber {
         uint32_t clientId;            
@@ -178,7 +180,6 @@ private:
       return false; // no slot available
   }
 
-
     //6) Remove Client - to remove the disconnected client
     void removeClient(const uint32_t clientId) {
         for (int i = 0; i < MAX_SOCKET; i++) {
@@ -191,7 +192,6 @@ private:
             }
         }
     }
-
 
     //7) Mark As Verified - to mark the connected websocket client as verified and authenticated
     void markAsVerified(const uint32_t clientId, const char* sessionId){
@@ -273,8 +273,8 @@ public:
     //Esposes some public function 
     //1) Begin - To start AP, webserver and listen for new websocket request, and api endpoints
     void begin() {
-        delay(3000);    //intensional delay to have time to interact with serial monitor
         Serial.println("Starting Webserver...");
+        WiFi.mode(WIFI_AP_STA);
         //fetch wifi ssid from db
         {
             FixedString32 tmp;
@@ -295,6 +295,26 @@ public:
                 password[sizeof(password) - 1] = '\0';
             }
         }
+        //fetch sta ssid from db
+        {
+            FixedString32 tmp;
+            if (generalDb.get("STA_SSID", &tmp)) {
+                size_t copyN = sizeof(sta_ssid);
+                if (copyN > sizeof(tmp)) copyN = sizeof(tmp);
+                memcpy(sta_ssid, &tmp, copyN);
+                sta_ssid[sizeof(sta_ssid) - 1] = '\0';
+            }
+        }
+        //fetch sta password from db
+        {
+            FixedString32 tmp;
+            if (generalDb.get("STA_PASSWORD", &tmp)) {
+                size_t copyN = sizeof(sta_password);
+                if (copyN > sizeof(tmp)) copyN = sizeof(tmp);
+                memcpy(sta_password, &tmp, copyN);
+                sta_password[sizeof(sta_password) - 1] = '\0';
+            }
+        }
 
         //initialise littleFS filesystem
         if (!LittleFS.begin(true)) {
@@ -303,14 +323,30 @@ public:
         }
 
         // Start AP
-//        Serial.println("DEBUG 3");
-        WiFi.softAP(ssid, password);
-        delay(1000);
-        ip = WiFi.softAPIP();
-        Serial.println("Access Point started");
-        Serial.print("IP address: "); Serial.println(ip);
-        Serial.print("SSID: "); Serial.println(ssid);
-        Serial.print("Password: "); Serial.println(password);
+        if(WiFi.softAP(ssid, password)){
+            ip = WiFi.softAPIP();
+            Serial.println("Access Point started");
+            Serial.print("IP address: "); Serial.println(ip);
+            Serial.print("SSID: "); Serial.println(ssid);
+            Serial.print("Password: "); Serial.println(password);
+        }else{
+            Serial.println("Failed To Start WIFI Access Point");
+            return;
+        }
+
+        //start STA
+        WiFi.begin(sta_ssid, sta_password);
+        Serial.println("Connecting to WiFi (STA)...");
+        int retries = 10;
+        while (WiFi.status() != WL_CONNECTED && retries > 0) {
+            delay(500);
+            Serial.print(".");
+            retries--;
+        }
+        if(retries != 0){
+            Serial.println("\nConnected as STA!");
+            Serial.print("STA IP: ");   Serial.println(WiFi.localIP());
+        }
 
 //     WebSocket event handler
        ws.onEvent([this](AsyncWebSocket *serverPtr, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
@@ -485,11 +521,10 @@ public:
             request->send(200, "application/json", jsonBuf);
         });       
 
-
         //4) GET getSecurityCredintials
         server.on("/api/getSecurityCredintials", HTTP_GET, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SECURITY"))   return;
-            char jsonBuf[1500]; // Adjust size to fit max expected JSON
+            char jsonBuf[2048]; // Adjust size to fit max expected JSON
             AppCore::getSecurityCreds(jsonBuf, sizeof(jsonBuf));
             request->send(200, "application/json", jsonBuf);
         });
@@ -528,7 +563,7 @@ public:
             }
         });
 
-        //6) POST /update { "a2": 1.50, "d3": 0, "d4": 3.50, "usl": 26.00, "lsl": 25.95, "datapointSize": 30, "machineName": "machineName", "machineIP": "machineIP", "toolOffsetNumber": 30, "offsetSize": 20, "monitorCode":"700" }
+        //7) POST /update { "a2": 1.50, "d3": 0, "d4": 3.50, "usl": 26.00, "lsl": 25.95, "datapointSize": 30, "machineName": "machineName", "machineIP": "machineIP", "toolOffsetNumber": 30, "offsetSize": 20, "monitorCode":"700" }
         server.on("/api/update", HTTP_POST, [this](AsyncWebServerRequest *request) {}, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SETTING"))   return;
 
@@ -566,7 +601,7 @@ public:
             }
         );
 
-        //7) POST /updateWifi {"ssid": "newSSID", "password":"newpassword"}
+        //8) POST /updateWifi {"ssid": "newSSID", "password":"newpassword"}
         server.on("/api/updateWifi", HTTP_POST, [this](AsyncWebServerRequest *request) { }, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
@@ -597,7 +632,37 @@ public:
             }
         );
 
-        //7) POST /updateRole {"username": "username", "password":"newpassword", "userAlias":"newUserAlias", "allowedTo":["SETTING", "MONITOR"...]}
+        //9) POST /updateSTA {"ssid": "newSSID", "password":"newpassword"}
+        server.on("/api/updateSTA", HTTP_POST, [this](AsyncWebServerRequest *request) { }, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+                if(!isAuthenticated(request, "SECURITY"))   return;
+
+                if (len >= 128) {
+                    request->send(400, "text/plain", "JSON Data Too Large");
+                    return;
+                }
+
+                StaticJsonDocument<128> doc;
+                DeserializationError err = deserializeJson(doc, data, len);
+                if (err) {
+                    request->send(400, "text/plain", "Invalid JSON Data");
+                    return;
+                }
+
+                const char *ssid     = doc["ssid"]     | "";
+                const char *password = doc["password"] | "";
+
+                if (strlen(ssid) <= 7 || strlen(password) <= 7) {
+                    request->send(400, "text/plain", "Length of password and ssid must be greater than 7");
+                    return;
+                }
+
+                AppCore::updateSTA(ssid, password);
+                request->send(200, "application/json", "{\"status\":\"ok\"}");
+                restartServer();
+            }
+        );
+
+        //10) POST /updateRole {"username": "username", "password":"newpassword", "userAlias":"newUserAlias", "allowedTo":["SETTING", "MONITOR"...]}
         server.on("/api/updateRole", HTTP_POST, [this](AsyncWebServerRequest *request) { }, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
@@ -637,7 +702,7 @@ public:
             }
         );
 
-        //10)POST /deleteRole?username=xyz
+        //11)POST /deleteRole?username=xyz
         server.on("/api/deleteRole", HTTP_POST, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SECURITY"))   return;
             const AsyncWebParameter *p = request->getParam("username");
