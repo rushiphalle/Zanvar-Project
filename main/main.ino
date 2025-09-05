@@ -19,6 +19,13 @@ void setup(){
         generalDb.set("SSID", ssid);
         generalDb.set("PASSWORD", password);
     }  
+    if(!generalDb.has("STA_SSID") || !generalDb.has("STA_PASSWORD")){
+        Serial.println("Config Parameters Not Found! Setting Up Default Parameters! - WIFI Credintials");
+        FixedString32 ssid = {"WIFI_NAME"};
+        FixedString32 password = {"12345678"};
+        generalDb.set("STA_SSID", ssid);
+        generalDb.set("STA_PASSWORD", password);
+    }
     if(!userRolesDb.has("admin")){
         Serial.println("Config Parameters Not Found! Setting Up Default Parameters! - ADMIN Credintials");
         User adminRole = {};
@@ -36,7 +43,6 @@ void setup(){
 //Begin Input Stream Reading
    inputStream.begin();
 }
-
 
 /*DEMO INPUT LOGIC*/
 float getRandomFloat(float a, float b) {
