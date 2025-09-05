@@ -4,17 +4,18 @@ This document describes all endpoints for the server, including request format, 
 
 | No | Protocol | Method | Endpoint | Parameters | JSON Body | Response Codes | Description |
 |----|----------|--------|---------|-----------|-----------|----------------|------------|
-| 1  | HTTP     | GET    | [/login](#1-login) | username , password | N/A | 200, 400, 401, 503 | Authenticates user and sets session cookie |
-| 2  | HTTP     | GET    | [/logout](#2-logout) | N/A | N/A | 200, 400, 401 | Logs out user by clearing cookie |
-| 3  | HTTP     | GET    | [/getSettings](#3-get-settings) | N/A | N/A | 200, 400, 401, 403 | Logs out user by clearing cookie |
-| 4  | HTTP     | GET    | [/getSecurityCredintials](#4-get-security-credintials) | N/A | N/A | 200, 400, 401, 403 | Logs out user by clearing cookie |
-| 5  | HTTP     | POST    | [/update](#5-update) | N/A | { "a2": 1.50, "d3": 0, "d4": 3.50, "usl": 26.00, "lsl": 25.95, "datapointSize": 30, "machineName": "machineName", "machineIP": "machineIP", "toolOffsetNumber": 30, "offsetSize": 20, "monitorCode":"701" } | 200, 400, 401, 403, 507 |  Update existing or Add new SPC Settings |
-| 6  | HTTP     | POST    | [/delete](#6-delete) | monitorCode | N/A | 200, 400, 401, 403, 404 | Delete SPC Setting from persistant database |
-| 7  | HTTP     | POST    | [/reset](#7-reset) | monitorCode | N/A | 200, 400, 401, 403 | Reset record for respective monior code |
-| 8  | HTTP     | POST    | [/updateWifi](#8-update-wifi) | N/A | {"ssid":"newSSID", "password":"newPassword"} | 200, 400, 401, 403 | Update Wifi credintials |
-| 9  | HTTP     | POST    | [/updateRole](#9-update-role) | N/A | { "username":"admin", "password":"password", "userAlias":"admin", "allowedTo":["SETTING"] } | 200, 400, 401, 403, 507 | Update User credintials |
-| 10  | HTTP     | POST    | [/deleteRole](#10-delete-role) | username | N/A | 200, 400, 401, 403, 404 | Delete User Role |
-| 11  | WS     | -    | [/subscribe](#11-subscribe-\(websocket\)) | N/A | N/A | 200, 400, 401, 403, 404 | Delete User Role |
+| 1  | HTTP     | GET    | [/api/login](#1-login) | username , password | N/A | 200, 400, 401, 503 | Authenticates user and sets session cookie |
+| 2  | HTTP     | GET    | [/api/logout](#2-logout) | N/A | N/A | 200, 400, 401 | Logs out user by clearing cookie |
+| 3  | HTTP     | GET    | [/api/getSettings](#3-get-settings) | N/A | N/A | 200, 400, 401, 403 | Logs out user by clearing cookie |
+| 4  | HTTP     | GET    | [/api/getSecurityCredintials](#4-get-security-credintials) | N/A | N/A | 200, 400, 401, 403 | Logs out user by clearing cookie |
+| 5  | HTTP     | POST    | [/api/update](#5-update) | N/A | { "a2": 1.50, "d3": 0, "d4": 3.50, "usl": 26.00, "lsl": 25.95, "datapointSize": 30, "machineName": "machineName", "machineIP": "machineIP", "toolOffsetNumber": 30, "offsetSize": 20, "monitorCode":"701" } | 200, 400, 401, 403, 507 |  Update existing or Add new SPC Settings |
+| 6  | HTTP     | POST    | [/api/delete](#6-delete) | monitorCode | N/A | 200, 400, 401, 403, 404 | Delete SPC Setting from persistant database |
+| 7  | HTTP     | POST    | [/api/reset](#7-reset) | monitorCode | N/A | 200, 400, 401, 403 | Reset record for respective monior code |
+| 8  | HTTP     | POST    | [/api/updateWifi](#8-update-wifi) | N/A | {"ssid":"newSSID", "password":"newPassword"} | 200, 400, 401, 403 | Update Wifi credintials |
+| 9  | HTTP     | POST    | [/api/updateSTA](#9-update-sta) | N/A | {"ssid":"newSSID", "password":"newPassword"} | 200, 400, 401, 403 | Update Wifi credintials |
+| 10  | HTTP     | POST    | [/api/updateRole](#10-update-role) | N/A | { "username":"admin", "password":"password", "userAlias":"admin", "allowedTo":["SETTING"] } | 200, 400, 401, 403, 507 | Update User credintials |
+| 11  | HTTP     | POST    | [/api/deleteRole](#11-delete-role) | username | N/A | 200, 400, 401, 403, 404 | Delete User Role |
+| 12  | WS     | -    | [/subscribe](#12-subscribe-\(websocket\)) | N/A | N/A | 200, 400, 401, 403, 404 | Delete User Role |
 
 
 
@@ -24,7 +25,7 @@ This document describes all endpoints for the server, including request format, 
 ## 1. Login
 
 **Method:** GET                        
-**Endpoint:** `/login`  
+**Endpoint:** `/api/login`  
 **Description:** Authenticate a user, return user data and set a session cookie.
 
 **Query Parameters:**
@@ -80,7 +81,7 @@ This document describes all endpoints for the server, including request format, 
 ## 2. Logout
 
 **Method:** GET                        
-**Endpoint:** `/logout`  
+**Endpoint:** `/api/logout`  
 **Description:** Logs out user by clearing cookie
 
 **Cookie -** `"session_id=<15_characters_cookie>"`
@@ -125,7 +126,7 @@ This document describes all endpoints for the server, including request format, 
 ## 3. Get Settings
 
 **Method:** GET                        
-**Endpoint:** `/getSettings`  
+**Endpoint:** `/api/getSettings`  
 **Description:** Get SPC Settings stored in persistant database
 
 **Cookie -** `"session_id=<15_characters_cookie>"`
@@ -186,7 +187,7 @@ This document describes all endpoints for the server, including request format, 
 ## 4. Get Security Credintials
 
 **Method:** GET                        
-**Endpoint:** `/getSecurityCredintials`  
+**Endpoint:** `/api/getSecurityCredintials`  
 **Description:** Get Security Credintials, including wifi and user role data
 
 **Cookie -** `"session_id=<15_characters_cookie>"`
@@ -253,7 +254,7 @@ This document describes all endpoints for the server, including request format, 
 ## 5. Update
 
 **Method:** POST                        
-**Endpoint:** `/update`  
+**Endpoint:** `/api/update`  
 **Description:** Update existing or Add new SPC Settings
 
 **Cookie -** `"session_id=<15_characters_cookie>"`
@@ -329,7 +330,7 @@ This document describes all endpoints for the server, including request format, 
 ## 6. Delete
 
 **Method:** POST                        
-**Endpoint:** `/delete`  
+**Endpoint:** `/api/delete`  
 **Description:** Delete SPC Setting from persistant database 
 
 **Cookie -** `"session_id=<15_characters_cookie>"`
@@ -391,7 +392,7 @@ This document describes all endpoints for the server, including request format, 
 ## 7. Reset
 
 **Method:** POST                        
-**Endpoint:** `/reset`  
+**Endpoint:** `/api/reset`  
 **Description:** Reset record for respective monior code
 
 **Cookie -** `"session_id=<15_characters_cookie>"`
@@ -444,7 +445,7 @@ This document describes all endpoints for the server, including request format, 
 ## 8. Update Wifi
 
 **Method:** POST                        
-**Endpoint:** `/updateWifi`  
+**Endpoint:** `/api/updateWifi`  
 **Description:** Update Wifi credintials
 **Cookie -** `"session_id=<15_characters_cookie>"`
 
@@ -498,10 +499,68 @@ This document describes all endpoints for the server, including request format, 
 
 ***
 
-## 9. Update Role
+## 9. Update STA
 
 **Method:** POST                        
-**Endpoint:** `/updateRole`  
+**Endpoint:** `/api/updateSTA`  
+**Description:** Update STA credintials
+**Cookie -** `"session_id=<15_characters_cookie>"`
+
+**JSON Body:**
+```json
+    	{
+            "ssid":"newSSID", 
+            "password":"newPassword"
+        }	 
+```
+
+**Responses:**   
+
+**1. On Setting Updation**   
+- **Status Code -** 200 (OK)         
+- **Body -**   
+
+    - **Content Type -** application/json
+    - **JSON structure -**
+    ```json
+    {
+        "status":"ok"
+    }
+    ```
+***
+
+**2. On Bad Request (Cookie Missing)**   
+- **Status Code -** 400  
+- **Body -**   
+
+    - **Content Type -** text/plain
+    - **Text Message -** `Session cookie not found` | `JSON Data Too Large` | `Invalid JSON Data` | `Length of password and ssid must be greater than 7`
+
+    ***
+
+**3. Unauthenticated**   
+- **Status Code -** 401  
+- **Body -**   
+
+    - **Content Type -** text/plain
+    - **Text Message -** `Unauthenticated`
+
+***
+
+**4. Not Allowed**   
+- **Status Code -** 403 
+- **Body -**   
+
+    - **Content Type -** text/plain
+    - **Text Message -** `Not Allowded To Perform This Action`
+
+***
+
+
+## 10. Update Role
+
+**Method:** POST                        
+**Endpoint:** `/api/updateRole`  
 **Description:** Update User credintials
 
 **Cookie -** `"session_id=<15_characters_cookie>"`
@@ -567,10 +626,10 @@ This document describes all endpoints for the server, including request format, 
 
 ***
 
-## 10. Delete Role
+## 11. Delete Role
 
 **Method:** POST                        
-**Endpoint:** `/deleteRole`  
+**Endpoint:** `/api/deleteRole`  
 **Description:** Delete User Role
 
 **Cookie -** `"session_id=<15_characters_cookie>"`
@@ -632,7 +691,7 @@ This document describes all endpoints for the server, including request format, 
 
 
 
-## 11. subscribe (Websocket)
+## 12. subscribe (Websocket)
                        
 **Endpoint:** `/subscribe`  
 **Description:** Establish web socket to transfer live data based on pub sub model
@@ -675,16 +734,31 @@ This document describes all endpoints for the server, including request format, 
 
 **1. Unauthenticated** 
 - **On -** If client dont send the cookie as first message Or send wrong cookie
-- **Code -** 4003
+- **Code -** 1008
 - **Message -** "UNAUTHORIZED"
 
 **2. Bad Request** 
 - **On -** If Client send invalid message or in wrong format
-- **Code -** 4005
+- **Code -** 1008
 - **Message -** "INVALID MESSAGE"
 
 **3. Force disconnect** 
 - **On -** If client gets logged out due to any issues
-- **Code -** 5000
+- **Code -** 1000
 - **Message -** "FORCEFULLY LOGGED OUT"
+
+**4. No Pong** 
+- **On -** If client does not send pong for any ping
+- **Code -** 4000
+- **Message -** "NO PONG"
+
+**5. Server Overload** 
+- **On -** If client capacity reached beyond limit
+- **Code -** 1013
+- **Message -** "CLIENT CAPACITY FULL"
+
+**6. too Many Requests** 
+- **On -** If client send multiple request without closing old one
+- **Code -** 3001
+- **Message -** "TOO MANY REQUESTS"
 
