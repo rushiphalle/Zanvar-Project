@@ -203,19 +203,23 @@ This document describes all endpoints for the server, including request format, 
     ```json
     {
         "wifi": {
-            "ssid": "NEWSSID",
+            "ssid": "ZANVAR_INDUSTRY",
             "password": "12345678"
-        },
-        "users": [
-                {
-                    "username": "admin",
-                    "password": "admin123",
-                    "userAlias": "admin",
-                    "allowedTo": [
-                        "SETTING", "MONITOR", "SECURITY"
-                    ]
-                }
-        ]
+         },
+         "sta": {
+             "ssid": "Industry Wifi",
+             "password": "12345678",
+             "isConnected": true,
+             "message": "Connected"
+          },
+         "users": [
+            {
+               "username": "admin",
+               "password": "admin123",
+               "userAlias": "Administrator",
+               "allowedTo": ["SETTING", "MONITOR", "SECURITY"]
+            }
+          ]
     }
     ```
 ***
