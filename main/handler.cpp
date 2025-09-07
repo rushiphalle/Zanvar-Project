@@ -29,7 +29,6 @@ void streamMonitor(const char* monitorCode, float values[30], int elementsInArra
     doc["LCL_MR"]     = result.LCL_MR;
     doc["cp"]         = result.cp;
     doc["cpk"]        = result.cpk;
-    doc["isDrifting"] = result.isDrifting;
     doc["usl"]        = setting.usl;
     doc["lsl"]        = setting.lsl;
 
