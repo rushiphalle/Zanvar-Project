@@ -248,3 +248,90 @@
 .button:hover {
   background: #1c2d3c;
 }
+
+.card {
+  width: 100%;
+  background-color: white;
+  border-radius: 15px; /* match wifibox */
+  box-shadow: 0px 0px 5px #213547;
+  margin: 20px 0; /* same spacing as wifibox */
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.card h2 {
+  background-color: #213547;
+  margin: 20px 20px;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 15px;
+}
+
+.card p {
+  margin: 15px 20px 0; /* add spacing from header */
+  font-size: 0.95rem;
+  color: #666;
+}
+
+.card form {
+  margin: 20px; /* same as wifibox */
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* center form like wifibox */
+  justify-content: center;
+  gap: 15px;
+}
+
+.card form div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.card label {
+  font-size: 18px;
+  font-weight: bold; /* match wifibox */
+  color: #444;
+}
+
+.card input {
+  border: 0px;
+  box-shadow: 0px 0px 2px #213547;
+
+  padding: 10px 20px;
+  width: 100%;
+  font-size: 18px;
+  border-radius: 5px;
+}
+
+.card button {
+  background-color: #213547;
+  width: 100%;
+  padding: 10px 20px;
+  text-align: center;
+  color: white;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.card button:hover {
+  background-color: #1c2d3c; /* hover effect */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card input {
+    font-size: 16px;
+    padding: 8px 15px;
+  }
+
+  .card button {
+    font-size: 16px;
+    padding: 8px 15px;
+  }
+}
