@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import styles from './Security.module.css';
-import {updateRole,  getSecurityCreds, updateWifi, deleteRole, logout } from '../../utils/api';
+import {updateRole,  getSecurityCreds, updateWifi, deleteRole, logout ,
+  getStaStatus,
+  updateSTA,} from '../../utils/api';
 import { useAuth } from '../../utils/AuthContext';
 import { useSpinner } from '../../utils/SpinnerContext';
 
@@ -157,6 +159,10 @@ export default function Security() {
     const [password, setPasswrod] = useState();
     const [roles, setRoles] = useState([]);
     const [shown, setShown] = useState(false);
+    // STA states
+  const [staStatus, setStaStatus] = useState(null);
+  const [staSsid, setStaSsid] = useState('');
+  const [staPassword, setStaPassword] = useState('');
     const { setUser } = useAuth();
     const { setSpinner } = useSpinner();
     const handleUpdateWIFI = async(e) => {
@@ -173,6 +179,22 @@ export default function Security() {
             alert("Failed To Update With Error Code = " + ack.code);
         }
     }
+    const handleUpdateSTA = async (e) => {
+      e.preventDefault();
+      setSpinner('Updating STA Credentials');
+      let ack = await updateSTA(staSsid, staPassword); // ✅ match import
+      setSpinner(null);
+  
+      if (ack.code === 200) {
+        alert('STA Credentials Updated');
+        refresh();
+      } else if (ack.code === 401) {
+        alert('Session expired. Please login again.');
+        setUser(null);
+      } else {
+        alert('Failed To Update STA. Error Code = ' + ack.code);
+      }
+    };
     const refresh = async()=>{
         setSpinner("Fetching Data");
         let ack = await getSecurityCreds();
@@ -212,7 +234,39 @@ export default function Security() {
                     <button type="submit">Update Credintials</button>
                 </form>
             </div>
-            
+            {/* STA Credentials */}
+      <div className={styles.card}>
+        <h2>STA Credentials</h2>
+        <p>
+          Status: <b>{staStatus || 'Unknown'}</b>
+        </p>
+        <form onSubmit={handleUpdateSTA}>
+          <div>
+            <label>STA SSID</label>
+            <input
+              type="text"
+              value={staSsid}
+              placeholder="Enter STA SSID"
+              required
+              onChange={(e) => setStaSsid(e.target.value)}
+              minLength={3}
+            />
+          </div>
+          <div>
+            <label>STA Password</label>
+            <input
+              type="text"
+              value={staPassword}
+              placeholder="Enter STA Password"
+              required
+              onChange={(e) => setStaPassword(e.target.value)}
+              minLength={8}
+            />
+          </div>
+          <button type="submit">Update STA</button>
+        </form>
+      </div>
+
             <div className={styles.rolebox}>
                 <h2 className={styles.roleBoxHeader}>User Roles</h2>
                 {
