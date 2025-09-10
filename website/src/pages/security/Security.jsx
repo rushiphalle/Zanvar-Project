@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import styles from './Security.module.css';
-import {updateRole,  getSecurityCreds, updateWifi, deleteRole, logout ,
-  getStaStatus,
-  updateSTA,} from '../../utils/api';
+import {updateRole,  getSecurityCreds, updateWifi, deleteRole, logout , updateSTA} from '../../utils/api';
 import { useAuth } from '../../utils/AuthContext';
 import { useSpinner } from '../../utils/SpinnerContext';
 
@@ -202,6 +200,9 @@ export default function Security() {
         if(ack.code == 200){
            setSsid(ack.creds.wifi.ssid);
            setPasswrod(ack.creds.wifi.password);
+           setStaSsid(ack.creds.sta.ssid);
+           setStaPassword(ack.creds.sta.password);
+           setStaStatus(ack.creds.sta.message);
            setRoles(ack.creds.users);
         }else if (ack.code === 401) {
           alert("Oops! Session Expired, Please Relogin");
@@ -237,7 +238,7 @@ export default function Security() {
             {/* STA Credentials */}
       <div className={styles.card}>
         <h2>STA Credentials</h2>
-        <p>
+        <p style={{width:"100%", fontSize:"20px"}}>
           Status: <b>{staStatus || 'Unknown'}</b>
         </p>
         <form onSubmit={handleUpdateSTA}>

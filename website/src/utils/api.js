@@ -309,45 +309,7 @@ export async function updateWifi(ssid, password) {
     };
   }
 }
-export async function updateSTA(ssid, password) {
-  try {
-    const response = await fetch(`${API_BASE}updateSTA`, {
-      method: "POST",
-      credentials: "include",  
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        ssid, password
-      }),
-    });
 
-    switch (response.status) {
-      case 200:
-        const data = await response.json();
-        return { code: 200, ...data};
-      case 400: 
-        var text =  await response.text();
-        return { code: 400, reason: text };
-      case 401:
-        var text =  await response.text();
-        return { code: 401, reason: text };
-      case 403:
-        var text =  await response.text();
-        return { code: 403, reason: text };
-      default:
-        return {
-          code: 500,
-          reason: "Unexpected Err"
-        };
-    }
-  } catch (err) {
-    return {
-      code: 500,
-      reason: "Unexpected Error: " + (err.message || err)
-    };
-  }
-}
 
 export async function updateSTA(ssid, password) {
   try {
