@@ -237,8 +237,8 @@ namespace AppCore {
             "  \"sta\": {\n"
             "    \"ssid\": \"%s\",\n"
             "    \"password\": \"%s\",\n"
-            "    \"isConnected\": \"%s\",\n"
-            "    \"message\": %s\n"
+            "    \"isConnected\": %s,\n"
+            "    \"message\": \"%s\"\n"
             "  },\n"
             "  \"users\": [\n",
             ssid, password, sta_ssid, sta_password, isConnected ? "true":"false", status

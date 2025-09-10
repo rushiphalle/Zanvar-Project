@@ -7,6 +7,7 @@
 void setup(){
 //Begin Serial Output
     Serial.begin(115200);
+    
 //Begin Databases
     generalDb.begin();
     spcDb.begin();
@@ -70,17 +71,17 @@ float getRandomFloat(float a, float b) {
 
 void loop(){
     //nothing is needed here
-    inputStream.read();
-    delay(5000);
+     inputStream.read();
+    // delay(5000);
 
 
-    /*DEMO INPUT LOGIC*/
-    auto keys = spcDb.getKeys();
-    for(int i=0; i<keys.size; i++){
-        SPCSettings data;
-        if (spcDb.get(keys.keys[i], &data)) {
-            spcHandler.insertParameter(keys.keys[i], getRandomFloat(data.lsl, data.usl));  
-        }
-    }
-    delay(20000);
+    // /*DEMO INPUT LOGIC*/
+    // auto keys = spcDb.getKeys();
+    // for(int i=0; i<keys.size; i++){
+    //     SPCSettings data;
+    //     if (spcDb.get(keys.keys[i], &data)) {
+    //         spcHandler.insertParameter(keys.keys[i], getRandomFloat(data.lsl, data.usl));  
+    //     }
+    // }
+    // delay(20000);
 }

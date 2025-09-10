@@ -13,43 +13,42 @@ private:
     char buffer[BUFFER_SIZE];
     int bufferIndex = 0;
     bool capturing = false;
-    bool isLastMod = false;
 
     // Private constructor (singleton)
     MyInputHandler() {}
     MyInputHandler(const MyInputHandler&) = delete;
     MyInputHandler& operator=(const MyInputHandler&) = delete;
 
+    // Collect characters until a complete block is received
     void parseBlock(char c) {
         if (c == '%') {
             if (!capturing) {
-                // Start a new block
+                // Start new block
                 bufferIndex = 0;
                 buffer[bufferIndex++] = c;
                 capturing = true;
             } else {
-                // Already capturing: this % might be end of block
-                if (bufferIndex > 1) {
-                    // We have content, send the block
-                    buffer[bufferIndex++] = c;
-                    buffer[bufferIndex] = '\0';
-                    parseValue(buffer);
-                }
-                // Reset for next block (even if previous was empty)
-                bufferIndex = 0;
+                // End block
                 buffer[bufferIndex++] = c;
-                capturing = true;
+                buffer[bufferIndex] = '\0'; // terminate string
+
+                // Validate block: must start and end with %
+                if (bufferIndex > 2 && buffer[0] == '%' && buffer[bufferIndex - 1] == '%') {
+                    parseValue(buffer); // send complete block
+                }
+                // Reset for next block
+                capturing = false;
+                bufferIndex = 0;
             }
         } else if (capturing) {
             if (bufferIndex < BUFFER_SIZE - 1) {
                 buffer[bufferIndex++] = c;
             } else {
-                // Overflow, reset
+                // Overflow -> reset
                 bufferIndex = 0;
                 capturing = false;
             }
         }
-        // ignore characters outside block
     }
 
     // Parse completed block, extract key-value pairs
@@ -58,25 +57,38 @@ private:
         strncpy(buf, block, sizeof(buf) - 1);
         buf[sizeof(buf) - 1] = '\0';
 
-        char* line = strtok(buf, "\n\r");
+        // Remove starting and ending '%'
+        char* start = strchr(buf, '%');
+        char* end   = strrchr(buf, '%');
+        if (start && end && start != end) {
+            *end = '\0';   // terminate at last %
+            start++;       // move after first %
+        } else {
+            return; // invalid block
+        }
+
+        // Split into lines
+        char* line = strtok(start, "\n\r");
         while (line != nullptr) {
-            // Trim spaces
+            // Trim leading spaces
             while (*line == ' ' || *line == '\t') line++;
 
-            // Parameter lines start with #
+            // Parameter lines start with '#'
             if (line[0] == '#') {
                 char* equalSign = strchr(line, '=');
                 if (equalSign) {
-                    char key[32] = {0};
+                    // Extract key (after #, before '=')
+                    char keyStr[16] = {0};
                     int keyLen = equalSign - (line + 1);
-                    if (keyLen > 0 && keyLen < (int)sizeof(key)) {
-                        strncpy(key, line + 1, keyLen);
-                        key[keyLen] = '\0';
+                    if (keyLen > 0 && keyLen < (int)sizeof(keyStr)) {
+                        strncpy(keyStr, line + 1, keyLen);
+                        keyStr[keyLen] = '\0';
                     }
 
-                    float value = atof(equalSign + 1);
+                    float value = atof(equalSign + 1); // convert to float
 
-                    spcHandler.insertParameter(key, value);
+                    // Call SPC handler with string key
+                    spcHandler.insertParameter(keyStr, value);
                 }
             }
 
@@ -91,7 +103,7 @@ public:
     }
 
     void begin() {
-        Serial1.begin(9600, SERIAL_8N1, RX, TX); 
+        Serial1.begin(9600, SERIAL_8N1, RX, TX);
     }
 
     void read() {
