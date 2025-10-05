@@ -1,0 +1,14 @@
+{
+  "board_fqbn": "esp32:esp32:esp32",
+  "libraries": [
+    "ArduinoJson@7.4.2",
+    "https://github.com/me-no-dev/AsyncTCP.git",
+    "https://github.com/me-no-dev/ESPAsyncWebServer.git"
+  ],
+  "build_properties": {
+    "board_build.filesystem": "littlefs",
+    "board_build.partitions": "partition.csv",
+    "build_flags": "-std=gnu++17",
+    "build_unflags": "-std=gnu++11"
+  }
+}

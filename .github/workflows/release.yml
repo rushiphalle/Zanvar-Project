@@ -3,143 +3,56 @@ name: Build and Release ESP32 Project
 on:
   push:
     tags:
-      - "v*.*.*"   # Runs when you push a version tag like v1.0.0
+      - "v*.*.*"   # Trigger only on version tags like v1.0.0
 
 permissions:
   contents: write
 
 jobs:
-  build:
+  build-release:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Checkout repo
+      # 1️⃣ Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2) Setup Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      # 3) Setup Python
+      # 2️⃣ Setup Python (needed for esptool, etc.)
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"  # closest to 3.0.0 (since 3.0 is ancient)
+          python-version: "3.10"
 
-      # 4) Install PlatformIO
-      - name: Install PlatformIO
+      # 3️⃣ Make build script executable
+      - name: Make build script executable
+        run: chmod +x builder/build.sh
+
+      # 4️⃣ Run your build script
+      - name: Run build script
         run: |
-          pip install -U platformio
+          echo "⚙️ Running builder/build.sh..."
+          ./builder/build.sh
 
-      # 5) Build website and move to data/
-      - name: Build Website
+      # 5️⃣ Verify flasher folder exists
+      - name: Verify flasher folder
         run: |
-          cd website
-          npm install
-          npm run build
-          mkdir -p ../data/dist
-          cp -r dist/* ../data/dist/
+          if [ ! -d "flasher" ]; then
+            echo "❌ flasher folder not found! Build script may have failed."
+            exit 1
+          fi
+          echo "✅ flasher folder found:"
+          ls -la flasher
 
-      # 6) Compile firmware
-      - name: Build firmware
-        run: |
-          pio run
-
-      # 7) Compile LittleFS image
-      - name: Build LittleFS
-        run: |
-          pio run -t buildfs
-
-      # 8) Collect binaries
-      - name: Collect binaries
-        run: |
-          mkdir -p build_output
-          cp .pio/build/esp32dev/firmware.bin build_output/
-          cp .pio/build/esp32dev/littlefs.bin build_output/
-          cp .pio/build/esp32dev/bootloader.bin build_output/ || true
-          cp .pio/build/esp32dev/partitions.bin build_output/ || true
-
-      # 9) Create flash.py uploader with dynamic addresses from partition.csv
-      - name: Create flash.py with runtime addresses
-        run: |
-          # Extract offsets from partition.csv
-          FIRMWARE_ADDR=$(grep '^app0' partition.csv | awk -F',' '{print $4}' | xargs)
-          LITTLEFS_ADDR=$(grep '^littlefs' partition.csv | awk -F',' '{print $4}' | xargs)
-
-          # Set static addresses for bootloader and partition table
-          BOOTLOADER_ADDR="0x1000"
-          PARTITIONS_ADDR="0x8000"
-
-          cat << EOF > build_output/flash.py
-          #!/usr/bin/env python3
-          import sys
-          import os
-          import subprocess
-          import serial.tools.list_ports
-
-          CHIP = "esp32"
-
-          # --- Flash files with addresses ---
-          FLASH_FILES = {
-              "bootloader.bin": "$BOOTLOADER_ADDR",
-              "partitions.bin": "$PARTITIONS_ADDR",
-              "firmware.bin": "$FIRMWARE_ADDR",
-              "littlefs.bin": "$LITTLEFS_ADDR"
-          }
-
-          # --- Safety check for sudo/root ---
-          if os.name != "nt":  # Only relevant on Linux/macOS
-              if os.geteuid() == 0:
-                  print("⚠️ Warning: Running as root (via sudo). All subprocesses will also run as root!")
-                  print("   If this is not intentional, stop and re-run without sudo.")
-          
-          # --- Detect ESP32 port ---
-          def detect_esp32_port():
-              ports = list(serial.tools.list_ports.comports())
-              for port in ports:
-                  if port.vid and port.pid:
-                      if (port.vid, port.pid) in [
-                          (0x10C4,0xEA60),  # Silicon Labs CP210x
-                          (0x1A86,0x7523),  # CH340
-                          (0x0403,0x6001)   # FT232
-                      ]:
-                          return port.device
-              for port in ports:
-                  if any(keyword in port.device.lower() for keyword in ["ttyusb","ttyacm","usb","com"]):
-                      return port.device
-              return None
-
-          port = detect_esp32_port()
-          if not port:
-              print("❌ Error: ESP32 not detected.")
-              sys.exit(1)
-          print(f"✅ Detected ESP32 on port: {port}")
-
-          # --- Flash all files ---
-          for bin_file, address in FLASH_FILES.items():
-              cmd = ["esptool.py","--chip",CHIP,"--port",port,"--baud","460800","write_flash","-z",address,bin_file]
-              print("▶ Running:", " ".join(cmd))
-              subprocess.run(cmd, check=True)
-
-          print("🎉 Flashing completed successfully!")
-          EOF
-
-          chmod +x build_output/flash.py
-
-      # 10) Zip package
-      - name: Package Release
+      # 6️⃣ Zip the flasher folder
+      - name: Package flasher folder
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
-          ZIP_NAME="ZanvarSolution${VERSION}.zip"
-          cd build_output
-          zip -r ../$ZIP_NAME *
-          cd ..
+          ZIP_NAME="Flasher-${VERSION}.zip"
+          zip -r $ZIP_NAME flasher
           echo "ZIP_NAME=$ZIP_NAME" >> $GITHUB_ENV
+          echo "✅ Created ZIP: $ZIP_NAME"
 
-      # 11) Upload GitHub Release
+      # 7️⃣ Publish ZIP as GitHub release asset
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
