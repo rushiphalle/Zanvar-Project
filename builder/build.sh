@@ -47,8 +47,15 @@ if ! command -v arduino-cli >/dev/null 2>&1; then
     echo "==> Arduino CLI not found. Installing..."
     mkdir -p "$BIN_DIR"
     ARCH=$(uname -m)
-    [[ "$ARCH" == "aarch64" ]] && ARCH="ARM64"
-    [[ "$ARCH" == "x86_64" ]] && ARCH="x86_64"
+    if [[ "$ARCH" == "aarch64" ]]; then
+    ARCH="ARM64"
+    elif [[ "$ARCH" == "x86_64" ]]; then
+    ARCH="64bit"
+    else
+    echo "❌ Unsupported architecture: $ARCH"
+    exit 1
+    fi
+
     CLI_URL="https://downloads.arduino.cc/arduino-cli/arduino-cli_1.3.1_Linux_${ARCH}.tar.gz"
     curl -fsSL "$CLI_URL" -o /tmp/arduino-cli.tar.gz
     tar -xzf /tmp/arduino-cli.tar.gz -C "$BIN_DIR"
