@@ -20,7 +20,58 @@ namespace AppCore {
     inline void refreshRecords(){
      spcHandler.refreshRecords();
     }
-    inline bool update(const char* monitorCode, float a2, float d3, float d4, float usl, float lsl, int datapointSize, const char* machineName, const char* machineIP, int toolOffsetNumber, float offsetSize){
+
+    inline bool updateTable(const float arr[90]) {
+        // Copy all 30 elements from arr into obj.value
+        FixedArray90 obj;
+        for (int i = 0; i < 90; i++) {
+            obj.value[i] = arr[i];
+        }
+        floatDb.set("value_table", obj);
+
+        return true;
+    }
+
+    inline void getTableData(char* outBuffer, size_t bufferSize) {
+        FixedArray90 table;
+        if (!floatDb.get("value_table", &table)) {
+            strncpy(outBuffer, "[]", bufferSize);
+            outBuffer[bufferSize - 1] = '\0';
+            return;
+        }
+    
+        // Start JSON array
+        size_t pos = snprintf(outBuffer, bufferSize, "[");
+    
+        for (int i = 0; i < 90; i += 3) {
+            int written = snprintf(
+                outBuffer + pos,
+                bufferSize - pos,
+                "{\"a2\":%.3f,\"d3\":%.3f,\"d4\":%.3f}%s",
+                table.value[i],
+                table.value[i + 1],
+                table.value[i + 2],
+                (i < 87) ? "," : ""
+            );
+    
+            if (written < 0 || (pos + written) >= bufferSize) {
+                // Truncated or overflow — ensure null termination
+                outBuffer[bufferSize - 1] = '\0';
+                return;
+            }
+    
+            pos += written;
+        }
+    
+        // Close JSON array
+        if (pos < bufferSize - 1) {
+            snprintf(outBuffer + pos, bufferSize - pos, "]");
+        } else {
+            outBuffer[bufferSize - 1] = '\0';
+        }
+    }
+
+    inline bool update(const char* monitorCode, float usl, float lsl, int sampleSize, const char* machineName, const char* machineIP, int toolOffsetNumber, float offsetSize){
         auto keys = spcDb.getKeys();
         bool isExist = false;
 
@@ -34,12 +85,9 @@ namespace AppCore {
 
         if (keys.size >= MAX_SETTINGS && !isExist) return false;
         SPCSettings newSettings = {};
-        newSettings.a2 = a2;
-        newSettings.d3 = d3;
-        newSettings.d4 = d4;
         newSettings.usl = usl;
         newSettings.lsl = lsl;
-        newSettings.datapointSize = datapointSize;
+        newSettings.sampleSize = sampleSize;
 
         std::strncpy(newSettings.machineName, machineName, sizeof(newSettings.machineName) - 1);
         newSettings.machineName[sizeof(newSettings.machineName) - 1] = '\0';
@@ -117,24 +165,18 @@ namespace AppCore {
 
             n = std::snprintf(outBuffer + offset, bufferSize - offset,
                 "  \"%s\": {\n"
-                "    \"a2\": %.3f,\n"
-                "    \"d3\": %.3f,\n"
-                "    \"d4\": %.3f,\n"
                 "    \"usl\": %.3f,\n"
                 "    \"lsl\": %.3f,\n"
-                "    \"datapointSize\": %d,\n"
+                "    \"sampleSize\": %d,\n"
                 "    \"machineName\": \"%s\",\n"
                 "    \"machineIP\": \"%s\",\n"
                 "    \"toolOffsetNumber\": %d,\n"
                 "    \"offsetSize\": %.3f\n"
                 "  }",
                 keys.keys[i],
-                setting.a2,
-                setting.d3,
-                setting.d4,
                 setting.usl,
                 setting.lsl,
-                setting.datapointSize,
+                setting.sampleSize,
                 setting.machineName,
                 setting.machineIP,
                 setting.toolOffsetNumber,

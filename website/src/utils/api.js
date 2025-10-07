@@ -72,6 +72,40 @@ export async function logout() {
   }
 }
 
+export async function getTableData() {
+  try {
+    const response = await fetch(`${API_BASE}getTabledata`, {
+      method: "GET",
+      credentials: "include"
+    });
+
+    switch (response.status) {
+      case 200:
+        const data = await response.json();
+        return {  code: 200, table: data };
+      case 400: 
+        var text =  await response.text();
+        return { code: 400, reason: text };
+      case 401:
+        var text =  await response.text();
+        return { code: 401, reason: text };
+      case 403:
+        var text =  await response.text();
+        return { code: 403, reason: text };
+      default:
+        return {
+          code: 500,
+          reason: "Unexpected Err"
+        };
+    }
+  } catch (err) {
+    return {
+      code: 500,
+      reason: "Unexpected Error: " + (err.message || err)
+    };
+  }
+}
+
 export async function getSettings() {
   try {
     const response = await fetch(`${API_BASE}getSettings`, {
@@ -140,7 +174,48 @@ export async function getSecurityCreds() {
   }
 }
 
-export async function update(monitorCode, USL, LSL, D3, D4, A2, bufferSize, machineName, machineIP, toolOffsetNum, offsetSize) {
+export async function updateTable(tableData) {
+  try {
+    const response = await fetch(`${API_BASE}updateTable`, {
+      method: "POST",
+      credentials: "include",  
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(tableData),
+    });
+
+    switch (response.status) {
+      case 200:
+        const data = await response.json();
+        return { code: 200, ...data};
+      case 400: 
+        var text =  await response.text();
+        return { code: 400, reason: text };
+      case 401:
+        var text =  await response.text();
+        return { code: 401, reason: text };
+      case 403:
+        var text =  await response.text();
+        return { code: 403, reason: text };
+      case 507:
+        var text =  await response.text();
+        return { code: 507, reason: text };
+      default:
+        return {
+          code: 500,
+          reason: "Unexpected Err"
+        };
+    }
+  } catch (err) {
+    return {
+      code: 500,
+      reason: "Unexpected Error: " + (err.message || err)
+    };
+  }
+}
+
+export async function update(monitorCode, USL, LSL, bufferSize, machineName, machineIP, toolOffsetNum, offsetSize) {
   try {
     const response = await fetch(`${API_BASE}update`, {
       method: "POST",
@@ -149,12 +224,9 @@ export async function update(monitorCode, USL, LSL, D3, D4, A2, bufferSize, mach
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        a2: A2,
-        d3: D3,
-        d4: D4,
         usl: USL,
         lsl: LSL,
-        datapointSize: bufferSize,
+        sampleSize: bufferSize,
         machineName,
         machineIP,
         toolOffsetNumber: toolOffsetNum,

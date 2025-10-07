@@ -41,14 +41,15 @@ struct FixedString32 {
     char value[MAX_STRING_LENGTH];
 };
 
+struct FixedArray90 {
+    float value[90];
+};
+
 //3) struct to store spc settings
-struct SPCSettings {
-    float a2;
-    float d3; 
-    float d4;  
+struct SPCSettings { 
     float usl;
     float lsl;
-    int datapointSize;
+    int sampleSize;
     char machineName[MAX_STRING_LENGTH]; 
     char machineIP[16];  
     int toolOffsetNumber;

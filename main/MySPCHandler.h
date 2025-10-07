@@ -90,7 +90,7 @@ public:
                 continue;
             }
 
-            int limit = setting.datapointSize;
+            int limit = setting.sampleSize;
             if (limit <= 0) continue;
             if (limit > MAX_VALUES) limit = MAX_VALUES; // prevent overflow
 
@@ -143,11 +143,11 @@ public:
             return;
         }
 
-        int limit = setting.datapointSize;
+        int limit = setting.sampleSize;
         if (limit <= 0) limit = MAX_VALUES;
         if (limit > MAX_VALUES) limit = MAX_VALUES;
 
-        // Insert value respecting datapointSize
+        // Insert value respecting sampleSize
         if (rec.size >= limit) {
             for (int i = 1; i < limit; i++) {
                 rec.values[i - 1] = rec.values[i];

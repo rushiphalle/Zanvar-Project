@@ -8,7 +8,7 @@ This document describes all endpoints for the server, including request format, 
 | 2  | HTTP     | GET    | [/api/logout](#2-logout) | N/A | N/A | 200, 400, 401 | Logs out user by clearing cookie |
 | 3  | HTTP     | GET    | [/api/getSettings](#3-get-settings) | N/A | N/A | 200, 400, 401, 403 | Logs out user by clearing cookie |
 | 4  | HTTP     | GET    | [/api/getSecurityCredintials](#4-get-security-credintials) | N/A | N/A | 200, 400, 401, 403 | Logs out user by clearing cookie |
-| 5  | HTTP     | POST    | [/api/update](#5-update) | N/A | { "a2": 1.50, "d3": 0, "d4": 3.50, "usl": 26.00, "lsl": 25.95, "datapointSize": 30, "machineName": "machineName", "machineIP": "machineIP", "toolOffsetNumber": 30, "offsetSize": 20, "monitorCode":"701" } | 200, 400, 401, 403, 507 |  Update existing or Add new SPC Settings |
+| 5  | HTTP     | POST    | [/api/update](#5-update) | N/A | { "a2": 1.50, "d3": 0, "d4": 3.50, "usl": 26.00, "lsl": 25.95, "sampleSize": 30, "machineName": "machineName", "machineIP": "machineIP", "toolOffsetNumber": 30, "offsetSize": 20, "monitorCode":"701" } | 200, 400, 401, 403, 507 |  Update existing or Add new SPC Settings |
 | 6  | HTTP     | POST    | [/api/delete](#6-delete) | monitorCode | N/A | 200, 400, 401, 403, 404 | Delete SPC Setting from persistant database |
 | 7  | HTTP     | POST    | [/api/reset](#7-reset) | monitorCode | N/A | 200, 400, 401, 403 | Reset record for respective monior code |
 | 8  | HTTP     | POST    | [/api/updateWifi](#8-update-wifi) | N/A | {"ssid":"newSSID", "password":"newPassword"} | 200, 400, 401, 403 | Update Wifi credintials |
@@ -147,7 +147,7 @@ This document describes all endpoints for the server, including request format, 
             "d4": 3.50,
             "usl": 26.00,
             "lsl": 25.95,
-            "datapointSize": 30,
+            "sampleSize": 30,
             "machineName": "machineName",
             "machineIP": "machineIP",
             "toolOffsetNumber": 30,
@@ -272,7 +272,7 @@ This document describes all endpoints for the server, including request format, 
             "d4": 3.50, 
             "usl": 26.00, 
             "lsl": 25.95, 
-            "datapointSize": 30, 
+            "sampleSize": 30, 
             "machineName": "machineName", 
             "machineIP": "machineIP", 
             "toolOffsetNumber": 30, 

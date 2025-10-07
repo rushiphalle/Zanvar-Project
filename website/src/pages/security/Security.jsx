@@ -138,6 +138,15 @@ function RoleForm({ userAlias, username, password, allowedTo, closeEvent, refres
             />
             Security
           </label>
+
+                    <label className={styles.checkbox}>
+            <input
+              type="checkbox"
+              checked={allowedToState.includes("TABLE")}
+              onChange={() => togglePermission("TABLE")}
+            />
+            Table
+          </label>
         </div>
 
         <button type="submit" className={styles.button}>
@@ -213,6 +222,7 @@ export default function Security() {
     }
     useEffect(()=>{
         refresh();
+        window.scrollTo(0,0);
     }, []);
     return (
         <div className={styles.container}>

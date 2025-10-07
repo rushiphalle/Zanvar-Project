@@ -12,6 +12,7 @@ void setup(){
     generalDb.begin();
     spcDb.begin();
     userRolesDb.begin();
+    floatDb.begin();
 //Initialize Default Config
     if(!generalDb.has("SSID") || !generalDb.has("PASSWORD")){
         Serial.println("Config Parameters Not Found! Setting Up Default Parameters! - WIFI Credintials");
@@ -36,9 +37,31 @@ void setup(){
         strncpy(adminRole.allowedTo.data[0], "SETTING", sizeof(adminRole.allowedTo.data[0]) - 1);
         strncpy(adminRole.allowedTo.data[1], "SECURITY", sizeof(adminRole.allowedTo.data[1]) - 1);
         strncpy(adminRole.allowedTo.data[2], "MONITOR", sizeof(adminRole.allowedTo.data[2]) - 1);
-        adminRole.allowedTo.size = 3;
+        strncpy(adminRole.allowedTo.data[3], "TABLE", sizeof(adminRole.allowedTo.data[3]) - 1);
+        adminRole.allowedTo.size = 4;
         userRolesDb.set("admin", adminRole);
     }
+    if(!floatDb.has("value_table")){
+        FixedArray90 obj = { { 
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0,
+              1.50, 3.5, 0, 1.50, 3.5, 0
+        } };
+        floatDb.set("value_table", obj);
+    }
+
 //Begin Webserver
     webserver.begin();
 //Begin Input Stream Reading
@@ -72,16 +95,15 @@ float getRandomFloat(float a, float b) {
 void loop(){
     //nothing is needed here
      inputStream.read();
-    // delay(5000);
+     delay(5000);
 
 
     // /*DEMO INPUT LOGIC*/
-    // auto keys = spcDb.getKeys();
-    // for(int i=0; i<keys.size; i++){
-    //     SPCSettings data;
-    //     if (spcDb.get(keys.keys[i], &data)) {
-    //         spcHandler.insertParameter(keys.keys[i], getRandomFloat(data.lsl, data.usl));  
-    //     }
-    // }
-    // delay(20000);
+//     auto keys = spcDb.getKeys();
+//     for(int i=0; i<keys.size; i++){
+//         SPCSettings data;
+//         if (spcDb.get(keys.keys[i], &data)) {
+//             spcHandler.insertParameter(keys.keys[i], getRandomFloat(data.lsl, data.usl));  
+//         }
+//     }
 }

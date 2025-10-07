@@ -10,7 +10,7 @@
 #include "stdStructs.h" //Global User defined structures
 #include "MyDB.h"   //To interact with database
 #include "AppCore.h"    //Business Logic
-#include "Auth.h"   //To handle Authentication
+#include "Auth.h"   //To handle Authenticationg
 #include <ArduinoJson.h>    //To parse JSON
 #include <Ticker.h>
 
@@ -519,9 +519,18 @@ public:
             char jsonBuf[3072];
             AppCore::getSettings(jsonBuf, sizeof(jsonBuf));
             request->send(200, "application/json", jsonBuf);
+        });   
+        
+        //4) GET getTabledata
+        server.on("/api/getTabledata", HTTP_GET, [this](AsyncWebServerRequest *request) {
+            if(!isAuthenticated(request, "TABLE"))   return;
+            char jsonBuf[3072];
+            AppCore::getTableData(jsonBuf, sizeof(jsonBuf));
+            Serial.println(jsonBuf);
+            request->send(200, "application/json", jsonBuf);
         });       
 
-        //4) GET getSecurityCredintials
+        //5) GET getSecurityCredintials
         server.on("/api/getSecurityCredintials", HTTP_GET, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SECURITY"))   return;
             char jsonBuf[2048]; // Adjust size to fit max expected JSON
@@ -529,7 +538,7 @@ public:
             request->send(200, "application/json", jsonBuf);
         });
 
-        //5) POST /reset?monitorCode=700
+        //6) POST /reset?monitorCode=700
         server.on("/api/reset", HTTP_POST, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SETTING"))   return;
             const AsyncWebParameter *p = request->getParam("monitorCode");
@@ -544,7 +553,7 @@ public:
             request->send(200, "application/json", "{\"status\":\"OK\"}");
         });
 
-        //6) POST /delete?monitorCode=700
+        //7) POST /delete?monitorCode=700
         server.on("/api/delete", HTTP_POST, [this](AsyncWebServerRequest *request) {
            if(!isAuthenticated(request, "SETTING"))   return;
             const AsyncWebParameter *p = request->getParam("monitorCode");
@@ -563,7 +572,73 @@ public:
             }
         });
 
-        //7) POST /update { "a2": 1.50, "d3": 0, "d4": 3.50, "usl": 26.00, "lsl": 25.95, "datapointSize": 30, "machineName": "machineName", "machineIP": "machineIP", "toolOffsetNumber": 30, "offsetSize": 20, "monitorCode":"700" }
+        // 8) POST /api/updateTable [{"a2":1.5, "d3":2.5, "d4":0}, ...]
+        server.on("/api/updateTable", HTTP_POST, [this](AsyncWebServerRequest *request) {}, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+      
+              if (!isAuthenticated(request, "TABLE"))
+                  return;
+      
+              // Static buffer for multipart upload
+              static char jsonBuffer[8192];
+              static size_t currentLen = 0;
+      
+              if (index == 0) currentLen = 0;
+              if (currentLen + len >= sizeof(jsonBuffer)) {
+                  request->send(400, "text/plain", "JSON Data Too Large");
+                  currentLen = 0;
+                  return;
+              }
+      
+              memcpy(jsonBuffer + currentLen, data, len);
+              currentLen += len;
+      
+              // Wait until last chunk arrives
+              if (index + len < total)
+                  return;
+      
+              jsonBuffer[currentLen] = '\0';  // null-terminate
+      
+              StaticJsonDocument<6144> doc;
+              DeserializationError err = deserializeJson(doc, jsonBuffer, currentLen);
+              if (err) {
+                  request->send(400, "text/plain", "Invalid JSON Data: " + String(err.c_str()));
+                  currentLen = 0;
+                  return;
+              }
+      
+              if (!doc.is<JsonArray>()) {
+                  request->send(400, "text/plain", "Expected JSON Array");
+                  currentLen = 0;
+                  return;
+              }
+      
+              JsonArray arr = doc.as<JsonArray>();
+              if (arr.size() != 30) {
+                  request->send(400, "text/plain", "Expected 30 objects in array");
+                  currentLen = 0;
+                  return;
+              }
+      
+              float floatTable[90];
+              int idx = 0;
+              for (JsonObject obj : arr) {
+                  floatTable[idx++] = obj["a2"] | 0.0f;
+                  floatTable[idx++] = obj["d3"] | 0.0f;
+                  floatTable[idx++] = obj["d4"] | 0.0f;
+              }
+      
+              bool success = AppCore::updateTable(floatTable);
+              currentLen = 0;
+      
+              if (success)
+                  request->send(200, "application/json", "{\"status\":\"OK\"}");
+              else
+                  request->send(507, "text/plain", "Something Went Wrong");
+          }
+      );
+
+
+        //9) POST /update { "usl": 26.00, "lsl": 25.95, "sampleSize": 30, "machineName": "machineName", "machineIP": "machineIP", "toolOffsetNumber": 30, "offsetSize": 20, "monitorCode":"700" }
         server.on("/api/update", HTTP_POST, [this](AsyncWebServerRequest *request) {}, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SETTING"))   return;
 
@@ -582,16 +657,13 @@ public:
                 const char *monitorCode = doc["monitorCode"] | "";
                 const char *machineName = doc["machineName"] | "";
                 const char *machineIP   = doc["machineIP"] | "";
-                float a2                = doc["a2"]  | 0.0f;
-                float d3                = doc["d3"]  | 0.0f;
-                float d4                = doc["d4"]  | 0.0f;
                 float usl               = doc["usl"] | 0.0f;
                 float lsl               = doc["lsl"] | 0.0f;
-                int datapointSize       = doc["datapointSize"] | 0;
+                int sampleSize       = doc["sampleSize"] | 0;
                 int toolOffsetNumber    = doc["toolOffsetNumber"] | 0;
                 float offsetSize          = doc["offsetSize"] | 0.0f;
 
-                bool success = AppCore::update(monitorCode, a2, d3, d4, usl, lsl, datapointSize, machineName, machineIP, toolOffsetNumber, offsetSize);
+                bool success = AppCore::update(monitorCode, usl, lsl, sampleSize, machineName, machineIP, toolOffsetNumber, offsetSize);
 
                 if (success) {
                     request->send(200, "application/json", "{\"status\":\"OK\"}");
@@ -601,7 +673,7 @@ public:
             }
         );
 
-        //8) POST /updateWifi {"ssid": "newSSID", "password":"newpassword"}
+        //10) POST /updateWifi {"ssid": "newSSID", "password":"newpassword"}
         server.on("/api/updateWifi", HTTP_POST, [this](AsyncWebServerRequest *request) { }, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
@@ -632,7 +704,7 @@ public:
             }
         );
 
-        //9) POST /updateSTA {"ssid": "newSSID", "password":"newpassword"}
+        //11) POST /updateSTA {"ssid": "newSSID", "password":"newpassword"}
         server.on("/api/updateSTA", HTTP_POST, [this](AsyncWebServerRequest *request) { }, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
@@ -662,7 +734,7 @@ public:
             }
         );
 
-        //10) POST /updateRole {"username": "username", "password":"newpassword", "userAlias":"newUserAlias", "allowedTo":["SETTING", "MONITOR"...]}
+        //12) POST /updateRole {"username": "username", "password":"newpassword", "userAlias":"newUserAlias", "allowedTo":["SETTING", "MONITOR"...]}
         server.on("/api/updateRole", HTTP_POST, [this](AsyncWebServerRequest *request) { }, nullptr, [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
                 if(!isAuthenticated(request, "SECURITY"))   return;
 
@@ -702,7 +774,7 @@ public:
             }
         );
 
-        //11)POST /deleteRole?username=xyz
+        //13)POST /deleteRole?username=xyz
         server.on("/api/deleteRole", HTTP_POST, [this](AsyncWebServerRequest *request) {
             if(!isAuthenticated(request, "SECURITY"))   return;
             const AsyncWebParameter *p = request->getParam("username");

@@ -95,6 +95,7 @@ export default function Monitor() {
   };
 
   useEffect(() => {
+    window.scrollTo(0,0);
     sub();
     return () => {
       console.log("Called Log  "+  JSON.stringify(ack));

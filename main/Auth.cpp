@@ -143,7 +143,9 @@ bool Auth::createNewUser(const char* username, const char* password, const char*
         newUser.allowedTo.data[1][sizeof(newUser.allowedTo.data[1]) - 1] = '\0';
         strncpy(newUser.allowedTo.data[2], "SECURITY", sizeof(newUser.allowedTo.data[2]) - 1);
         newUser.allowedTo.data[2][sizeof(newUser.allowedTo.data[2]) - 1] = '\0';
-        newUser.allowedTo.size = 3;
+        strncpy(newUser.allowedTo.data[3], "TABLE", sizeof(newUser.allowedTo.data[3]) - 1);
+        newUser.allowedTo.data[3][sizeof(newUser.allowedTo.data[3]) - 1] = '\0';
+        newUser.allowedTo.size = 4;
     }else{
         for (int i = 0; i < size && i < 5; i++) {
             strncpy(newUser.allowedTo.data[i], allowedTo[i], sizeof(newUser.allowedTo.data[i]) - 1);

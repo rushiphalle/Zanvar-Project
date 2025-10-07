@@ -177,10 +177,12 @@ typename MyDB<T>::InstanceEntry MyDB<T>::instances[MAX_DB_INSTANCES] = {};
 using SPCSettingsDB = MyDB<SPCSettings>;
 using UserRolesDB   = MyDB<User>;
 using GeneralDb     = MyDB<FixedString32>;
+using FloatDB    = MyDB<FixedArray90>;
 
 // Inline global references
 inline GeneralDb& generalDb = GeneralDb::getInstance("generalDb");
 inline SPCSettingsDB& spcDb = SPCSettingsDB::getInstance("SPCSettings");
-inline UserRolesDB& userRolesDb = UserRolesDB::getInstance("UserRoles");
+inline UserRolesDB& userRolesDb = UserRolesDB::getInstance("UserRoles");\
+inline FloatDB& floatDb = FloatDB::getInstance("Float");
 
 #endif // MYDB_H

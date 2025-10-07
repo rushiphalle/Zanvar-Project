@@ -7,6 +7,9 @@ export default function Navbar(){
     return(
         <nav className={styles.navbar}>
             <ul>
+                {user?.allowedTo?.includes("TABLE") && (
+                  <li><Link to="/table"><span>TABLE</span></Link></li>
+                )}
                 {user?.allowedTo?.includes("SETTING") && (
                   <li><Link to="/settings"><span>SETTINGS</span></Link></li>
                 )}

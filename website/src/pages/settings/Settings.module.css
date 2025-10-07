@@ -55,7 +55,8 @@
 
 /* First two rows (span full width) */
 .boardSettings > div:nth-child(1),
-.boardSettings > div:nth-child(2) {
+.boardSettings > div:nth-child(2),
+.boardSettings > div:nth-child(3) {
   grid-column: 1 / -1; /* span across both columns */
 }
 

@@ -16,6 +16,7 @@
     align-items: center;
     justify-content: space-evenly;
     font-weight: bold;
+    font-size: 15px;
 }
 
 .navbar span{

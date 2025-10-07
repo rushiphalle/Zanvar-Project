@@ -3,6 +3,7 @@ import { useAuth } from "./utils/AuthContext";
 
 import Login from "./pages/login/Login";
 import Profile from "./pages/profile/Profile";
+import Table from "./pages/table/Table";
 import Settings from "./pages/settings/Settings";
 import Security from "./pages/security/Security";
 import Monitor from "./pages/monitor/Monitor";
@@ -27,7 +28,9 @@ function App() {
         ) : (
           <>
             <Route path="/profile" element={<Profile />} />
-
+            {user.allowedTo?.includes("TABLE") && (
+              <Route path="/table" element={<Table />} />
+            )}
             {user.allowedTo?.includes("SETTING") && (
               <Route path="/settings" element={<Settings />} />
             )}

@@ -10,7 +10,16 @@ inline float roundToThreeDecimals(float value) {
 }
 
 inline SPCResult calculate(SPCSettings setting, float values[], int elementsInArray) {
+    FixedArray90 table;
     SPCResult result{};
+    if (!floatDb.get("value_table", &table)) {
+        Serial.println("Internal Error!");
+        return result;
+    }
+    float a2 = table.value[((setting.sampleSize - 1) * 3) + 0];
+    float d3 = table.value[((setting.sampleSize - 1) * 3) + 1];
+    float d4 = table.value[((setting.sampleSize - 1) * 3) + 2];
+    
     if (elementsInArray <= 0) {
         return result; // empty result if no data
     }
@@ -46,11 +55,11 @@ inline SPCResult calculate(SPCSettings setting, float values[], int elementsInAr
     result.stdDev = roundToThreeDecimals(sqrt(sumSq / elementsInArray));
 
     // --- 4. Control Limits ---
-    result.UCL_X = roundToThreeDecimals(result.xBar + setting.a2 * result.stdDev);
-    result.LCL_X = roundToThreeDecimals(result.xBar - setting.a2 * result.stdDev);
+    result.UCL_X = roundToThreeDecimals(result.xBar + a2 * result.stdDev);
+    result.LCL_X = roundToThreeDecimals(result.xBar - a2 * result.stdDev);
 
-    result.UCL_MR = roundToThreeDecimals(setting.d4 * result.stdDev);
-    result.LCL_MR = roundToThreeDecimals(setting.d3 * result.stdDev);
+    result.UCL_MR = roundToThreeDecimals(d4 * result.stdDev);
+    result.LCL_MR = roundToThreeDecimals(d3 * result.stdDev);
 
     // --- 5. Cp & Cpk ---
     if (result.stdDev > 0) {
